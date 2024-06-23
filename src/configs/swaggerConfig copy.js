@@ -25,7 +25,7 @@ const options = {
       },
     ],
   },
-  apis: ['./src/app/api/routers/*.js'], // ที่อยู่ของไฟล์ที่มีคอมเมนต์ Swagger
+  apis: ['./src/routers/*.js'], // ที่อยู่ของไฟล์ที่มีคอมเมนต์ Swagger
 };
 
 const specs = swaggerJsdoc(options);

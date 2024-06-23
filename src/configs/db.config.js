@@ -1,5 +1,3 @@
-'use server';
-
 require("dotenv").config();
 const mysql2 = require('mysql2'); // นำเข้า mysql2
 
