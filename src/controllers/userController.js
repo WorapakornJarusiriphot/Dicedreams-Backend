@@ -110,7 +110,7 @@ exports.update = async (req, res, next) => {
     if (req.body.user_image) {
       if (req.body.user_image.search("data:image") != -1) {
         const user = await User.findByPk(users_id);
-        const uploadPath = path.resolve("./") + "/src/app/api/public/images/";
+        const uploadPath = path.resolve("./") + "/src/public/images/";
 
         fs.unlink(uploadPath + user.user_image, function (err) {
           console.log("File deleted!");
@@ -180,7 +180,7 @@ exports.deleteAll = (req, res) => {
 async function saveImageToDisk(baseImage) {
   const projectPath = path.resolve("./");
 
-  const uploadPath = `${projectPath}/src/app/api/public/images/`;
+  const uploadPath = `${projectPath}/src/public/images/`;
 
   const ext = baseImage.substring(
     baseImage.indexOf("/") + 1,
