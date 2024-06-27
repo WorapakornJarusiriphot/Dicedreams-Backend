@@ -115,7 +115,21 @@ exports.update = async (req, res, next) => {
         req.body.user_image = await saveImageToDisk(req.body.user_image);
       }
     }
-    req.body.birthday = moment(req.body.birthday, "MM-DD-YYYY");
+
+    if (req.body.birthday) {
+      req.body.birthday = moment(req.body.birthday, "MM-DD-YYYY");
+      if (!req.body.birthday.isValid()) {
+        res.status(400).send({
+          message: "Invalid date format, please use MM-DD-YYYY",
+        });
+        return;
+      }
+    }
+
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(5);
+      req.body.password = await bcrypt.hash(req.body.password, salt);
+    }
 
     User.update(req.body, {
       where: { users_id: users_id },
