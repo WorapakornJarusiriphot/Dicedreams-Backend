@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
-const config = { DOMAIN: process.env.DOMAIN };
+const config = require("../configs/config");
 
 const User = db.user;
 
