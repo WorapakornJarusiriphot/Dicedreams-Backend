@@ -1,3 +1,4 @@
+// ไฟล์นี้เป็นคอนโทรลเลอร์สำหรับจัดการกับโพสต์เกม (post_games) ในแอปพลิเคชัน โดยใช้ไลบรารี Sequelize เพื่อจัดการกับฐานข้อมูลและการทำงานต่างๆ ที่เกี่ยวข้องกับโพสต์เกม
 const db = require("../models");
 const moment = require("moment");
 
@@ -30,7 +31,7 @@ exports.create = async (req, res, next) => {
       date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
       time_meet: req.body.time_meet,
       games_image: req.body.games_image
-        ? await saveImageToDisk(req.body.games_image)
+        ? await saveImageToDisk(req.body.games_image) // ส่งรูปเกมไปเก็บในระบบ ถ้ามีการส่งรูปเกมมา ถ้าไม่มีจะเป็นค่าว่าง และจะไม่เก็บรูปเกม ในระบบ และจะเป็นค่าว่าง ในฐานข้อมูล 
         : req.body.games_image, // ส่งรูปเกมไปเก็บในระบบ
       status_post: req.body.status_post,
       creation_date: req.body.creation_date,
@@ -192,11 +193,11 @@ exports.delete = (req, res) => {
 // Delete all games from the database.
 exports.deleteAll = (req, res) => {
   PostGames.destroy({
-    where: {},
-    truncate: false,
+    where: {}, // ส่งเงื่อนไขว่าจะลบข้อมูลทั้งหมดหรือไม่
+    truncate: false, // ถ้าเป็น true จะลบทั้งตาราง ถ้าเป็น false จะลบแค่ข้อมูล
   })
-    .then((nums) => {
-      res.send({ message: `${nums} Games were deleted successfully!` });
+    .then((nums) => { // ส่งจำนวนข้อมูลที่ถูกลบกลับไป และแสดงข้อความว่าลบสำเร็จ
+      res.send({ message: `${nums} Games were deleted successfully!` }); 
     })
     .catch((err) => {
       res.status(500).send({
@@ -205,39 +206,40 @@ exports.deleteAll = (req, res) => {
     });
 };
 
-async function saveImageToDisk(baseImage) {
-  const projectPath = path.resolve("./");
+// ฟังก์ชัน saveImageToDisk ใช้สำหรับบันทึกรูปภาพที่ได้รับมาในรูปแบบ base64 ลงในดิสก์ และฟังก์ชัน decodeBase64Image ใช้สำหรับแปลง base64 string เป็นข้อมูลรูปภาพ
+async function saveImageToDisk(baseImage) { // ฟังก์ชัน saveImageToDisk ใช้สำหรับบันทึกรูปภาพที่ได้รับมาในรูปแบบ base64 ลงในดิสก์
+  const projectPath = path.resolve("./"); // ระบุ path ของโปรเจค โดยใช้ path.resolve("./") ซึ่งจะไปอ้างอิงไปที่ root ของโปรเจค และเก็บไว้ในตัวแปร projectPath 
 
-  const uploadPath = `${projectPath}/src/public/images/`;
+  const uploadPath = `${projectPath}/src/public/images/`; // ระบุ path ที่จะเก็บรูปภาพที่ได้รับมา โดยใช้ตัวแปร projectPath ที่ได้รับมาจาก path.resolve("./") และเก็บไว้ในตัวแปร uploadPath
 
-  const ext = baseImage.substring(
-    baseImage.indexOf("/") + 1,
-    baseImage.indexOf(";base64")
+  const ext = baseImage.substring( // สร้างตัวแปร ext โดยใช้ฟังก์ชัน substring โดยรับค่าจาก baseImage โดยเริ่มตั้งแต่ตำแหน่งที่ 0 ไปจนถึงตำแหน่งที่มีค่า / และเก็บไว้ในตัวแปร ext
+    baseImage.indexOf("/") + 1, // ระบุตำแหน่งเริ่มต้นที่จะเริ่มตัดค่า โดยใช้ฟังก์ชัน indexOf โดยรับค่าจาก baseImage โดยเริ่มตั้งแต่ตำแหน่งที่มีค่า / ไปจนถึงตำแหน่งสุดท้าย และเก็บไว้ในตัวแปร ext
+    baseImage.indexOf(";base64") // ระบุตำแหน่งสุดท้ายที่จะเริ่มตัดค่า โดยใช้ฟังก์ชัน indexOf โดยรับค่าจาก baseImage โดยเริ่มตั้งแต่ตำแหน่งที่มีค่า ;base64 ไปจนถึงตำแหน่งสุดท้าย และเก็บไว้ในตัวแปร ext
   );
 
-  let filename = "";
-  if (ext === "svg+xml") {
-    filename = `${uuidv4()}.svg`;
+  let filename = ""; // สร้างตัวแปร filename และกำหนดค่าเริ่มต้นให้เป็นค่าว่าง 
+  if (ext === "svg+xml") { // ถ้า ext เป็น svg+xml ให้สร้างชื่อไฟล์ใหม่โดยใช้ uuidv4 และกำหนดนามสกุลไฟล์เป็น svg
+    filename = `${uuidv4()}.svg`; 
   } else {
-    filename = `${uuidv4()}.${ext}`;
+    filename = `${uuidv4()}.${ext}`; // ถ้าไม่ใช่ให้สร้างชื่อไฟล์ใหม่โดยใช้ uuidv4 และกำหนดนามสกุลไฟล์เป็น ext
   }
 
-  let image = decodeBase64Image(baseImage);
+  let image = decodeBase64Image(baseImage); // สร้างตัวแปร image โดยใช้ฟังก์ชัน decodeBase64Image โดยรับค่าจาก baseImage และเก็บไว้ในตัวแปร image
 
-  await writeFileAsync(uploadPath + filename, image.data, "base64");
+  await writeFileAsync(uploadPath + filename, image.data, "base64"); // บันทึกรูปภาพลงในดิสก์ โดยใช้ฟังก์ชัน writeFileAsync โดยรับค่า uploadPath และ filename และข้อมูลรูปภาพ และรูปแบบข้อมูลเป็น base64
 
   return filename;
 }
 
-function decodeBase64Image(base64Str) {
-  var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-  var image = {};
-  if (!matches || matches.length !== 3) {
-    throw new Error("Invalid base64 string");
+function decodeBase64Image(base64Str) { // ฟังก์ชัน decodeBase64Image ใช้สำหรับแปลง base64 string เป็นข้อมูลรูปภาพ  โดยรับค่า base64Str และส่งค่าออกมาเป็นข้อมูลรูปภาพ
+  var matches = base64Str.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/); // สร้างตัวแปร matches โดยใช้ฟังก์ชัน match โดยรับค่าจาก base64Str โดยตรวจสอบว่าข้อมูลที่รับมาตรงกับรูปแบบของ base64 หรือไม่ และเก็บไว้ในตัวแปร matches
+  var image = {}; // สร้างตัวแปร image และกำหนดค่าเริ่มต้นให้เป็นออบเจ็คว่าง
+  if (!matches || matches.length !== 3) {  // ถ้าไม่ตรงกับรูปแบบของ base64 หรือไม่มีข้อมูล ให้ส่งข้อความว่า Invalid base64 string
+    throw new Error("Invalid base64 string"); 
   }
 
-  image.type = matches[1];
-  image.data = matches[2];
+  image.type = matches[1]; // กำหนดค่าให้กับ image.type โดยใช้ค่าจาก matches ที่มี index เท่ากับ 1
+  image.data = matches[2]; // กำหนดค่าให้กับ image.data โดยใช้ค่าจาก matches ที่มี index เท่ากับ 2
 
-  return image;
+  return image; // ส่งค่าออกไปเป็นข้อมูลรูปภาพ
 }
