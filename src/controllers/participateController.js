@@ -41,8 +41,6 @@ exports.create = async (req, res, next) => {
     //select postgame by post_game_id
     const postGame = await db.post_games.findByPk(post_games_id);
 
-  
-    
      // insert table notification
      const notification = {
       type: "participate",
@@ -53,7 +51,6 @@ exports.create = async (req, res, next) => {
     };
     await db.notification.create(notification);
 
-    // ส่งข้อมูลกลับไปที่ client หลังจากทำการอัพเดท และสร้าง notification สำเร็จ socket.io จะทำการอัพเดทข้อมูลให้ทุกๆ client ที่เชื่อมต่อ แต่ละ client จะต้องเขียนโค้ดเพื่อรับข้อมูลที่ถูกส่งกลับมา
     const messages = [];
 
     // get table notification by user_id where read = false
@@ -62,7 +59,6 @@ exports.create = async (req, res, next) => {
     });
     for (let i = 0; i < notifications.length; i++) {
       if (notifications[i].type === "participate") {
-        //  ดึงข้อมูลจาก table participate โดยใช้ entity_id ที่ได้จาก table notification
         const participate = await Participate.findByPk(
           notifications[i].entity_id
         );
@@ -75,7 +71,6 @@ exports.create = async (req, res, next) => {
           time: notifications[i].time,
         });
       } else if (notifications[i].type === "chat") {
-        //  ดึงข้อมูลจาก table chat โดยใช้ entity_id ที่ได้จาก table notification
         const chat = await db.chat.findByPk(notifications[i].entity_id);
         messages.push({
           type: "chat",
@@ -87,8 +82,6 @@ exports.create = async (req, res, next) => {
         });
       }
     }
-
-    // get socketio from app.js and emit to client
 
     req.app
       .get("socketio")
@@ -136,7 +129,6 @@ exports.update = async (req, res, next) => {
   const id = req.params.id;
 
   try {
-    // update เสร็จให้ return ข้อมูลกลับไปที่ client
 
     const updated = await Participate.update(req.body, {
       where: { part_Id: id },
@@ -156,7 +148,6 @@ exports.update = async (req, res, next) => {
       };
       await db.notification.create(notification);
 
-      // ส่งข้อมูลกลับไปที่ client หลังจากทำการอัพเดท และสร้าง notification สำเร็จ socket.io จะทำการอัพเดทข้อมูลให้ทุกๆ client ที่เชื่อมต่อ แต่ละ client จะต้องเขียนโค้ดเพื่อรับข้อมูลที่ถูกส่งกลับมา
       const messages = [];
 
       // get table notification by user_id where read = false
@@ -165,7 +156,6 @@ exports.update = async (req, res, next) => {
       });
       for (let i = 0; i < notifications.length; i++) {
         if (notifications[i].type === "participate") {
-          //  ดึงข้อมูลจาก table participate โดยใช้ entity_id ที่ได้จาก table notification
           const participate = await Participate.findByPk(
             notifications[i].entity_id
           );
@@ -178,7 +168,6 @@ exports.update = async (req, res, next) => {
             time: notifications[i].time,
           });
         } else if (notifications[i].type === "chat") {
-          //  ดึงข้อมูลจาก table chat โดยใช้ entity_id ที่ได้จาก table notification
           const chat = await db.chat.findByPk(notifications[i].entity_id);
           messages.push({
             type: "chat",
@@ -261,7 +250,7 @@ exports.findAllByPostGamesId = async (req, res, next) => {
 
 // Retrieve all Participates by user_id
 exports.findAllByUserId = async (req, res, next) => {
-  const user_id = req.params.userId; // Change req.params.id to req.params.userId
+  const user_id = req.params.userId; 
   try {
     const data = await Participate.findAll({
       where: { user_id: user_id },

@@ -1,5 +1,3 @@
-// create router for comment
-
 const express = require("express");
 const router = express.Router();
 const chatController = require("../controllers/chatController");
@@ -180,7 +178,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *       404:
  *         description: Chat not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isUser], chatController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.delete);
 
 /**
  * @swagger
@@ -194,7 +192,7 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isUser], chatControll
  *       200:
  *         description: All chats were deleted successfully.
  */
-router.delete("/", [passportJWT.isLogin, authentication.isUser], chatController.deleteAll);
+router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.deleteAll);
 
 /**
  * @swagger

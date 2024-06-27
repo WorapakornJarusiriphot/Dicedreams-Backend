@@ -70,17 +70,17 @@ exports.findAll = async (req, res, next) => {
   }
 };
 
-// ฟังก์ชันใหม่: ดึงโพสต์ทั้งหมดของร้านค้าตาม store_id
+// ดึงโพสต์ทั้งหมดของร้านค้าตาม store_id
 exports.findAllStorePosts = async (req, res, next) => {
   try {
-    const storeId = req.params.storeId; // รับ ID ร้านค้าจากพารามิเตอร์ URL
-    console.log(`Fetching posts for store ID: ${storeId}`); // เพิ่ม log เพื่อตรวจสอบการดึงโพสต์
+    const storeId = req.params.storeId;
+    console.log(`Fetching posts for store ID: ${storeId}`);
 
     const post_activity = await PostActivity.findAll({
-      where: { store_id: storeId }, // ค้นหาโพสต์ที่มี store_id ตรงกับ ID ที่ส่งมา
+      where: { store_id: storeId },
     });
 
-    console.log(`Found posts: ${post_activity.length}`); // เพิ่ม log เพื่อตรวจสอบจำนวนโพสต์ที่พบ
+    console.log(`Found posts: ${post_activity.length}`);
 
     post_activity.forEach((post) => {
       if (post.post_activity_image) {
@@ -92,7 +92,7 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     res.status(200).json(post_activity);
   } catch (error) {
-    console.error("Failed to fetch store posts:", error.message); // เพิ่ม log ข้อผิดพลาด
+    console.error("Failed to fetch store posts:", error.message);
     next(error);
   }
 };

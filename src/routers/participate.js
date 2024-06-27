@@ -1,5 +1,3 @@
-// create router for participate
-
 const express = require("express");
 const router = express.Router();
 const participateController = require("../controllers/participateController");
@@ -227,7 +225,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateCont
  *       404:
  *         description: Participate not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isUser], participateController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.delete);
 
 /**
  * @swagger
@@ -241,6 +239,6 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isUser], participateC
  *       200:
  *         description: All participates were deleted successfully.
  */
-router.delete("/", [passportJWT.isLogin, authentication.isUser], participateController.deleteAll);
+router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.deleteAll);
 
 module.exports = router;

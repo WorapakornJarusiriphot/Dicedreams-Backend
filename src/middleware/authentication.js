@@ -1,7 +1,7 @@
 module.exports.isAdmin = (req, res, next) => {
     const { role } = req.user;
 
-    if ( role === 'admin') {
+    if (role === 'admin') {
         next();
     } else {
         return res.status(403).json({
@@ -15,7 +15,7 @@ module.exports.isAdmin = (req, res, next) => {
 module.exports.isUser = (req, res, next) => {
     const { role } = req.user;
 
-    if ( role === 'user') {
+    if (role === 'user') {
         next();
     } else {
         return res.status(403).json({
@@ -29,7 +29,7 @@ module.exports.isUser = (req, res, next) => {
 module.exports.isStore = (req, res, next) => {
     const { role } = req.user;
 
-    if ( role === 'store') {
+    if (role === 'store') {
         next();
     } else {
         return res.status(403).json({
@@ -43,12 +43,54 @@ module.exports.isStore = (req, res, next) => {
 module.exports.isStoreOrUser = (req, res, next) => {
     const { role } = req.user;
 
-    if ( role === 'store'|| role === 'user') {
+    if (role === 'store' || role === 'user') {
         next();
     } else {
         return res.status(403).json({
             error: {
                 message: 'ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store หรือ user เท่านั้น'
+            }
+        });
+    }
+}
+
+module.exports.isAdminOrUser = (req, res, next) => {
+    const { role } = req.user;
+
+    if (role === 'admin' || role === 'user') {
+        next();
+    } else {
+        return res.status(403).json({
+            error: {
+                message: 'ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ admin หรือ user เท่านั้น'
+            }
+        });
+    }
+}
+
+module.exports.isAdminOrStore = (req, res, next) => {
+    const { role } = req.user;
+
+    if (role === 'admin' || role === 'store') {
+        next();
+    } else {
+        return res.status(403).json({
+            error: {
+                message: 'ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ admin หรือ store เท่านั้น'
+            }
+        });
+    }
+}
+
+module.exports.isUserOrAdminOrStore = (req, res, next) => {
+    const { role } = req.user;
+
+    if (role === 'user' || role === 'admin' || role === 'store') {
+        next();
+    } else {
+        return res.status(403).json({
+            error: {
+                message: 'ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ user, admin หรือ store เท่านั้น'
             }
         });
     }

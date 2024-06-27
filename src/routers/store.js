@@ -1,4 +1,3 @@
-// create router for store
 const express = require("express");
 const router = express.Router();
 const storeController = require("../controllers/storeController");
@@ -218,7 +217,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isStoreOrUser], storeCon
  *                   updatedAt:
  *                     type: string
  */
-router.get("/user/:id", [passportJWT.isLogin, authentication.isUser], storeController.findAllByUserId);
+router.get("/user/:id", [passportJWT.isLogin, authentication.isStoreOrUser], storeController.findAllByUserId);
 
 /**
  * @swagger
@@ -278,7 +277,7 @@ router.get("/user/:id", [passportJWT.isLogin, authentication.isUser], storeContr
  *       400:
  *         description: Invalid input
  */
-router.put("/:id", [passportJWT.isLogin, authentication.isUser], storeController.update);
+router.put("/:id", [passportJWT.isLogin, authentication.isStore], storeController.update);
 
 /**
  * @swagger
@@ -302,7 +301,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], storeController
  *       404:
  *         description: Store not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isUser], storeController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrStore], storeController.delete);
 
 /**
  * @swagger
@@ -316,6 +315,6 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isUser], storeControl
  *       200:
  *         description: All stores were deleted successfully.
  */
-router.delete("/", [passportJWT.isLogin, authentication.isUser], storeController.deleteAll);
+router.delete("/", [passportJWT.isLogin, authentication.isAdminOrStore], storeController.deleteAll);
 
 module.exports = router;
