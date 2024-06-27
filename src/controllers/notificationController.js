@@ -1,8 +1,8 @@
 const db = require("../models");
 const Notification = db.notification;
 const Participate = db.participate;
-const User = db.user; // Ensure you have correct model name here
-const Chat = db.chat; // Add this line to import the Chat model
+const User = db.user;
+const Chat = db.chat;
 const PostGame = db.post_games;
 
 // Define the relationships
@@ -58,7 +58,7 @@ exports.findAll = async (req, res, next) => {
               user_image: participate.user.user_image,
               name_games: participate.post_game.name_games,
               detail_post: participate.post_game.detail_post,
-              participants: postParticipants + 1, // เพิ่มการนับผู้เข้าร่วมที่ถูกต้อง
+              participants: postParticipants + 1,
               num_people: participate.post_game.num_people,
               date_meet: participate.post_game.date_meet,
               time_meet: participate.post_game.time_meet,
@@ -86,7 +86,7 @@ exports.findAll = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const id = req.params.id;
-    // get req.body.notification_id is array of notification_id to update read = true
+
     for (let i = 0; i < req.body.notification_id.length; i++) {
       const updated = await Notification.update(
         { read: true },
@@ -95,8 +95,6 @@ exports.update = async (req, res, next) => {
         }
       );
     }
-
-    // update socket.io to update notification to all client
 
     req.app.get("socketio").emit("notifications_" + req.user.users_id, []);
 

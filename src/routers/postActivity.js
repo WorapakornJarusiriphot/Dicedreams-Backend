@@ -1,4 +1,3 @@
-// create router for postActivity
 const express = require("express");
 const router = express.Router();
 const postActivityController = require("../controllers/postActivityController");
@@ -243,7 +242,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isStore], postActivityCo
  *       404:
  *         description: Activity post not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isStore], postActivityController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrStore], postActivityController.delete);
 
 /**
  * @swagger

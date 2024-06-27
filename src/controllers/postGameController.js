@@ -9,6 +9,7 @@ const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostGames = db.post_games;
+
 // create fucntion to create a new game and save it to the database
 exports.create = async (req, res, next) => {
   try {
@@ -48,12 +49,8 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all games from the database.
 exports.findAll = (req, res) => {
-  //   const name_games = req.query.name_games;
-  //   var condition = name_games
-  //     ? { name_games: { [Op.like]: `%${name_games}%` } }
-  //     : null;
   const { search } = req.query;
-  console.log(`Received search query for games: ${search}`); // เพิ่ม log เพื่อตรวจสอบคำค้นหา
+  console.log(`Received search query for games: ${search}`);
 
   const condition = search
     ? {
@@ -87,10 +84,10 @@ exports.findAll = (req, res) => {
 
 // ดึงโพสต์ทั้งหมดของผู้ใช้เฉพาะ
 exports.findAllUserPosts = (req, res) => {
-  const userId = req.params.userId; // รับ ID ผู้ใช้จากพารามิเตอร์
+  const userId = req.params.userId;
 
   PostGames.findAll({
-    where: { users_id: userId }, // ค้นหาโพสต์ที่มี users_id ตรงกับ ID ที่ส่งมา
+    where: { users_id: userId },
   })
     .then((data) => {
       data.forEach((post) => {

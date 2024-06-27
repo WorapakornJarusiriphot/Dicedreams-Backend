@@ -1,5 +1,3 @@
-// create a new file named postGame.js in the routers folder and add the following code:
-
 const express = require("express");
 const router = express.Router();
 const postGameController = require("../controllers/postGameController");

@@ -65,9 +65,6 @@ app.get("/", (req, res) => {
 });
 
 app.get('/testnotification', (req, res) => {
-  // req.user send users id to send notification to 
-
-
   res.sendFile(path.join(__dirname + '/index.html'))
 })
 
