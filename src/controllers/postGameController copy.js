@@ -46,6 +46,167 @@ exports.create = async (req, res, next) => {
   }
 };
 
+// postGameController.js
+// exports.create = async (req, res, next) => {
+//   try {
+//     // เพิ่ม log เพื่อตรวจสอบข้อมูลที่ส่งเข้ามา
+//     console.log("Received data:", req.body);
+
+//     // Validate request
+//     if (!req.body.name_games) {
+//       res.status(400).send({
+//         message: "Content can not be empty!",
+//       });
+//       return;
+//     }
+
+//     console.log(req.body.date_meet, "date_meet");
+//     // Create a game
+//     const game = {
+//       name_games: req.body.name_games,
+//       detail_post: req.body.detail_post,
+//       num_people: req.body.num_people,
+//       date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
+//       time_meet: req.body.time_meet,
+//       games_image: req.body.games_image
+//         ? await saveImageToDisk(req.body.games_image)
+//         : req.body.games_image, // ส่งรูปเกมไปเก็บในระบบ
+//       status_post: req.body.status_post,
+//       creation_date: req.body.creation_date,
+//       users_id: req.body.users_id,
+//     };
+
+//     // Save game in the database async
+//     const data = await PostGames.create(game);
+//     res
+//       .status(201)
+//       .json({ message: "Game was created successfully.", data: data });
+//   } catch (error) {
+//     console.error("Error creating game:", error); // เพิ่ม log ข้อผิดพลาด
+//     res.status(500).send({
+//       message: "An error occurred while creating the game.",
+//       error: error.message, // เพิ่มการส่งข้อความข้อผิดพลาดกลับไปยัง client
+//     });
+//   }
+// };
+
+// Update functions and other functions similarly
+
+// exports.create = async (req, res, next) => {
+//   try {
+//     // Log the received data for debugging
+//     console.log("Received data:", req.body);
+
+//     // Validate request
+//     if (!req.body.name_games) {
+//       res.status(400).send({
+//         message: "Content can not be empty!",
+//       });
+//       return;
+//     }
+
+//     console.log(req.body.date_meet, "date_meet");
+
+//     // Create a game
+//     const game = {
+//       name_games: req.body.name_games,
+//       detail_post: req.body.detail_post,
+//       num_people: req.body.num_people,
+//       date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
+//       time_meet: req.body.time_meet,
+//       games_image: req.body.games_image ? await saveImageToDisk(req.body.games_image) : req.body.games_image,
+//       status_post: req.body.status_post,
+//       creation_date: req.body.creation_date,
+//       users_id: req.body.users_id,
+//     };
+
+//     // Log the data before inserting into the database
+//     console.log("Inserting data into database:", game);
+
+//     // Save game in the database
+//     const data = await PostGames.create(game);
+//     res.status(201).json({ message: "Game was created successfully.", data: data });
+
+//   } catch (error) {
+//     // Log the error message
+//     console.error("Error creating game:", error);
+
+//     // Send error message to the client
+//     res.status(500).send({
+//       message: "An error occurred while creating the game.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// exports.create = async (req, res, next) => {
+//   try {
+//     // Log the received data for debugging
+//     console.log("Received data:", req.body);
+
+//     // ตรวจสอบ `users_id`
+//     const userId = req.body.users_id;
+//     console.log("Received users_id:", userId);
+
+//     // ตรวจสอบว่ามี `users_id` และมีอยู่ในฐานข้อมูล
+//     if (!userId) {
+//       return res.status(400).json({
+//         message: "Users ID is missing",
+//       });
+//     }
+
+//     const user = await db.users.findByPk(userId);
+//     if (!user) {
+//       return res.status(404).json({
+//         message: "User not found",
+//       });
+//     }
+
+//     // Validate request
+//     if (!req.body.name_games) {
+//       res.status(400).send({
+//         message: "Content can not be empty!",
+//       });
+//       return;
+//     }
+
+//     console.log(req.body.date_meet, "date_meet");
+
+//     // Create a game
+//     const game = {
+//       name_games: req.body.name_games,
+//       detail_post: req.body.detail_post,
+//       num_people: req.body.num_people,
+//       date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
+//       time_meet: req.body.time_meet,
+//       games_image: req.body.games_image
+//         ? await saveImageToDisk(req.body.games_image)
+//         : req.body.games_image,
+//       status_post: req.body.status_post,
+//       creation_date: req.body.creation_date,
+//       users_id: userId,
+//     };
+
+//     // Log the data before inserting into the database
+//     console.log("Inserting data into database:", game);
+
+//     // Save game in the database
+//     const data = await PostGames.create(game);
+//     res
+//       .status(201)
+//       .json({ message: "Game was created successfully.", data: data });
+//   } catch (error) {
+//     // Log the error message
+//     console.error("Error creating game:", error);
+
+//     // Send error message to the client
+//     res.status(500).send({
+//       message: "An error occurred while creating the game.",
+//       error: error.message,
+//     });
+//   }
+// };
+
 // Retrieve all games from the database.
 exports.findAll = (req, res) => {
   //   const name_games = req.query.name_games;
