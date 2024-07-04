@@ -38,7 +38,7 @@ const passportJWT = require('../middleware/passportJWT');
  *               date_meet:
  *                 type: string
  *                 format: date
- *                 example: "2024-12-31"
+ *                 example: "07/13/2024"
  *               time_meet:
  *                 type: string
  *                 format: time
@@ -52,7 +52,7 @@ const passportJWT = require('../middleware/passportJWT');
  *               creation_date:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-06-07T12:34:56Z"
+ *                 example: "07/13/2024 02:50:00"
  *               users_id:
  *                 type: string
  *                 example: "48b0a732-b292-4cf8-bdd2-52156f177587"
@@ -263,7 +263,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isStoreOrUser], postGame
  *               date_meet:
  *                 type: string
  *                 format: date
- *                 example: "2024-12-25"
+ *                 example: "07/15/2024"
  *               time_meet:
  *                 type: string
  *                 format: time

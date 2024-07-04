@@ -35,14 +35,14 @@ const passportJWT = require('../middleware/passportJWT');
  *               creation_date:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-06-07T12:34:56Z"
+ *                 example: "07/13/2024 02:50:00"
  *               detail_post:
  *                 type: string
  *                 example: "มาร่วมสนุกกับเกมกระดานยามค่ำคืนกับเรา"
  *               date_activity:
  *                 type: string
  *                 format: date
- *                 example: "2024-12-31"
+ *                 example: "07/13/2024"
  *               time_activity:
  *                 type: string
  *                 format: time
@@ -195,14 +195,14 @@ router.get("/:id", [passportJWT.isLogin, authentication.isStoreOrUser], postActi
  *               creation_date:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-06-07T12:34:56Z"
+ *                 example: "07/13/2024 02:50:00"
  *               detail_post:
  *                 type: string
  *                 example: "เข้าร่วมกับเราเพื่อพบกับค่ำคืนแห่งความสนุกของเกมกระดาน"
  *               date_activity:
  *                 type: string
  *                 format: date
- *                 example: "2024-12-25"
+ *                 example: "07/15/2024"
  *               time_activity:
  *                 type: string
  *                 format: time

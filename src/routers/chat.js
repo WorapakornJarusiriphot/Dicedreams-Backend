@@ -32,7 +32,7 @@ const passportJWT = require('../middleware/passportJWT');
  *               datetime_chat:
  *                 type: string
  *                 format: date-time
- *                 example: "2023-06-01T14:30:00Z"
+ *                 example: "07/13/2024 02:50:00"
  *               user_id:
  *                 type: string
  *                 example: "3cb8cba9-874c-482e-bb5e-c5d523d77b7a"
@@ -146,7 +146,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *               datetime_chat:
  *                 type: string
  *                 format: date-time
- *                 example: "2023-06-01T15:00:00Z"
+ *                 example: "07/14/2567 02:50:00"
  *     responses:
  *       200:
  *         description: Chat was updated successfully.
