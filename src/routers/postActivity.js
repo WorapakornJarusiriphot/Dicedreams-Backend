@@ -42,7 +42,7 @@ const passportJWT = require('../middleware/passportJWT');
  *               date_activity:
  *                 type: string
  *                 format: date
- *                 example: "2024-12-31"
+ *                 example: "12/10/2024"
  *               time_activity:
  *                 type: string
  *                 format: time
