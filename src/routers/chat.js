@@ -1,8 +1,11 @@
 const express = require("express");
+// ไลบรารี express เป็นเฟรมเวิร์กที่นิยมใช้ในการสร้างเซิร์ฟเวอร์ HTTP ด้วย Node.js มีเครื่องมือและมิดเดิลแวร์ที่หลากหลายสำหรับการจัดการคำขอและการตอบกลับ
 const router = express.Router();
 const chatController = require("../controllers/chatController");
 const authentication = require("../middleware/authentication");
 const passportJWT = require('../middleware/passportJWT');
+// ไลบรารี passport และ passport-jwt ใช้ในการจัดการการตรวจสอบผู้ใช้ (authentication) โดย passport 
+// เป็น middleware ที่นิยมใช้ในการตรวจสอบผู้ใช้ในแอปพลิเคชัน Node.js และ passport-jwt เป็น strategy หนึ่งที่ใช้ในการตรวจสอบ JWT
 
 /**
  * @swagger
@@ -45,7 +48,7 @@ const passportJWT = require('../middleware/passportJWT');
  *       400:
  *         description: Invalid input
  */
-router.post("/", [passportJWT.isLogin, authentication.isUser], chatController.create);
+router.post("/", [passportJWT.isLogin, authentication.isUser], chatController.create); // สร้าง chat ใหม่ โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถสร้าง chat ได้
 
 /**
  * @swagger
@@ -77,7 +80,7 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], chatController.cr
  *                   post_games_id:
  *                     type: string
  */
-router.get("/", [passportJWT.isLogin, authentication.isUser], chatController.findAll);
+router.get("/", [passportJWT.isLogin, authentication.isUser], chatController.findAll); // ดึงข้อมูล chat ทั้งหมด โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถดึงข้อมูล chat ได้
 
 /**
  * @swagger
@@ -116,7 +119,7 @@ router.get("/", [passportJWT.isLogin, authentication.isUser], chatController.fin
  *       404:
  *         description: Chat not found
  */
-router.get("/:id", [passportJWT.isLogin, authentication.isUser], chatController.findOne);
+router.get("/:id", [passportJWT.isLogin, authentication.isUser], chatController.findOne); // ดึงข้อมูล chat ตาม id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถดึงข้อมูล chat ได้
 
 /**
  * @swagger
@@ -155,7 +158,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *       400:
  *         description: Invalid input
  */
-router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.update);
+router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.update); // อัปเดตข้อมูล chat โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถอัปเดตข้อมูล chat ได้
 
 /**
  * @swagger
@@ -178,7 +181,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *       404:
  *         description: Chat not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.delete); // ลบข้อมูล chat โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถลบข้อมูล chat ได้
 
 /**
  * @swagger
@@ -192,7 +195,7 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], chatC
  *       200:
  *         description: All chats were deleted successfully.
  */
-router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.deleteAll);
+router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.deleteAll); // ลบข้อมูล chat ทั้งหมด โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถลบข้อมูล chat ได้
 
 /**
  * @swagger
@@ -231,6 +234,6 @@ router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatCont
  *                   post_games_id:
  *                     type: string
  */
-router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], chatController.findAllByPostGamesId);
+router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], chatController.findAllByPostGamesId); // ดึงข้อมูล chat ตาม post_games_id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถดึงข้อมูล chat ได้
 
-module.exports = router;
+module.exports = router; // export router ออกไปใช้งาน โดยในไฟล์นี้จะมีการสร้างเส้นทางสำหรับการจัดการข้อมูล chat ทั้งหมด และตรวจสอบสิทธิ์การใช้งานข้อมูล chat ว่าเป็น user, store หรือ admin หรือไม่

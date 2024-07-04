@@ -1,5 +1,6 @@
 // ไฟล์นี้เป็นการกำหนดค่าและการตั้งค่าสำหรับ Swagger ซึ่งเป็นเครื่องมือที่ใช้ในการสร้างเอกสาร API อัตโนมัติสำหรับ Dicedreams Application
 const swaggerJsdoc = require('swagger-jsdoc'); //นำเข้าโมดูล swagger-jsdoc ซึ่งใช้ในการสร้างและแสดงเอกสาร API
+// ไลบรารี swagger-jsdoc ใช้ในการสร้างเอกสาร API จากคอมเมนต์ในโค้ด และ swagger-ui-express ใช้ในการแสดงเอกสาร API ในรูปแบบเว็บอินเตอร์เฟซ
 const swaggerUi = require('swagger-ui-express'); //นำเข้าโมดูล swagger-ui-express ซึ่งใช้ในการสร้างและแสดงเอกสาร API
 
 const options = { //กำหนดค่าสำหรับการสร้างเอกสาร API โดยใช้ swagger-jsdoc
@@ -43,9 +44,9 @@ const options = { //กำหนดค่าสำหรับการสร้
   apis: ['./src/routers/*.js'], //กำหนดที่อยู่ของไฟล์ที่ใช้สำหรับสร้างเอกสาร API
 };
 
-const specs = swaggerJsdoc(options);
+const specs = swaggerJsdoc(options); //สร้างเอกสาร API โดยใช้ swagger-jsdoc และ options ที่กำหนดไว้ และเก็บไว้ใน specs สำหรับใช้งานในภายหลัง 
 
-module.exports = { swaggerUi, specs };
+module.exports = { swaggerUi, specs }; //ส่งค่า swaggerUi และ specs ออกไปใช้งานในไฟล์อื่น ๆ โดยใช้ module.exports ใน Node.js โดยที่ swaggerUi คือโมดูลที่ใช้ในการแสดงเอกสาร API และ specs คือเอกสาร API ที่สร้างขึ้น โดยใช้ swagger-jsdoc และ options ที่กำหนดไว้ 
 
 
 // Bearer Token คือรูปแบบของโทเค็นที่ใช้ในการยืนยันตัวตนและการให้สิทธิ์ (authentication and authorization) 

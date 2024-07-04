@@ -1,8 +1,11 @@
 const express = require("express");
+// ไลบรารี express เป็นเฟรมเวิร์กที่นิยมใช้ในการสร้างเซิร์ฟเวอร์ HTTP ด้วย Node.js มีเครื่องมือและมิดเดิลแวร์ที่หลากหลายสำหรับการจัดการคำขอและการตอบกลับ
 const router = express.Router();
 const notificationController = require("../controllers/notificationController");
 const authentication = require("../middleware/authentication");
 const passportJWT = require('../middleware/passportJWT');
+// ไลบรารี passport และ passport-jwt ใช้ในการจัดการการตรวจสอบผู้ใช้ (authentication) โดย passport 
+// เป็น middleware ที่นิยมใช้ในการตรวจสอบผู้ใช้ในแอปพลิเคชัน Node.js และ passport-jwt เป็น strategy หนึ่งที่ใช้ในการตรวจสอบ JWT
 
 /**
  * @swagger
@@ -42,7 +45,7 @@ const passportJWT = require('../middleware/passportJWT');
  *                     type: string
  *                     format: date-time
  */
-router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.findAll);
+router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.findAll); // ใช้ middleware passportJWT.isLogin และ authentication.isStoreOrUser ในการตรวจสอบการเข้าสู่ระบบ และตรวจสอบว่าเป็น store หรือ user เท่านั้น ถ้าเป็น admin จะไม่สามารถดึงข้อมูล notification ได้ 
 
 /**
  * @swagger
@@ -72,7 +75,7 @@ router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
  *       404:
  *         description: Notification not found
  */
-router.put("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.update);
+router.put("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.update); // ใช้ middleware passportJWT.isLogin และ authentication.isStoreOrUser ในการตรวจสอบการเข้าสู่ระบบ และตรวจสอบว่าเป็น store หรือ user เท่านั้น ถ้าเป็น admin จะไม่สามารถดึงข้อมูล notification ได้ 
 
 /**
  * @swagger
@@ -86,6 +89,6 @@ router.put("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
  *       200:
  *         description: All notifications marked as read successfully.
  */
-router.put("/mark-all-as-read", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.markAllAsRead);
+router.put("/mark-all-as-read", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.markAllAsRead); // ใช้ middleware passportJWT.isLogin และ authentication.isStoreOrUser ในการตรวจสอบการเข้าสู่ระบบ และตรวจสอบว่าเป็น store หรือ user เท่านั้น ถ้าเป็น admin จะไม่สามารถดึงข้อมูล notification ได้
 
-module.exports = router;
+module.exports = router; // ส่งค่า router ออกไปให้ไฟล์อื่นๆ สามารถ import ไฟล์นี้ไปใช้งานได้ โดยใช้คำสั่ง require() หรือ import from ใน JavaScript หรือ TypeScript ตามลำดับ 

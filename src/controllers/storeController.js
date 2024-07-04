@@ -3,6 +3,7 @@ const db = require("../models");
 const Store = db.store;
 
 const { v4: uuidv4 } = require("uuid");
+// ไลบรารี uuid ใช้ในการสร้าง UUID (Universally Unique Identifier) ซึ่งเป็นไอดีที่ไม่ซ้ำกันทั่วโลก ทำให้มั่นใจได้ว่าไอดีที่สร้างขึ้นจะไม่ซ้ำกับไอดีอื่นๆ
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");

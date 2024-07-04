@@ -1,6 +1,12 @@
 //ไฟล์นี้เป็นไฟล์ config สำหรับการเชื่อมต่อกับฐานข้อมูล MySQL โดยใช้ค่า environment variables เพื่อให้สามารถปรับเปลี่ยนค่าได้ง่ายและยืดหยุ่น
 require("dotenv").config(); //เพื่อโหลดค่าจากไฟล์ .env เข้ามาใน environment variables ของ Node.js
+// ไลบรารี dotenv ใช้ในการโหลดตัวแปรสิ่งแวดล้อม (environment variables) จากไฟล์ .env ไปยัง process.env 
+// ซึ่งช่วยให้การจัดการค่าคอนฟิกในแอปพลิเคชันเป็นไปอย่างสะดวกและปลอดภัย
 const mysql2 = require("mysql2"); //เพื่อใช้ไลบรารี mysql2 สำหรับการเชื่อมต่อกับฐานข้อมูล MySQL
+// ไลบรารี mysql2 ใช้ในการเชื่อมต่อและทำงานกับฐานข้อมูล MySQL ซึ่งรองรับทั้งการทำงานแบบ asynchronous และ synchronous
+// ประสิทธิภาพสูง: mysql2 ถูกออกแบบมาให้มีประสิทธิภาพสูงกว่า mysql ไลบรารีรุ่นก่อนหน้า มีการปรับปรุงและเพิ่มฟีเจอร์ใหม่ๆ เพื่อเพิ่มประสิทธิภาพในการทำงานและการประมวลผลข้อมูล
+// รองรับ Promises: mysql2 รองรับการทำงานแบบ asynchronous ด้วย Promises และ async/await ซึ่งช่วยให้การเขียนโค้ดง่ายขึ้นและเป็นระเบียบมากขึ้น
+// mysql2 มีความเข้ากันได้กับไลบรารี ORM (Object-Relational Mapping) ยอดนิยม เช่น Sequelize ซึ่งช่วยให้สามารถใช้ mysql2 ร่วมกับ Sequelize ได้โดยไม่ต้องปรับแต่งมาก
 
 module.exports = { //เพื่อส่งออกค่า config ไปใช้ในส่วนอื่นของโปรเจค
   HOST: process.env.DB_HOST, //รับค่า host จาก environment variables

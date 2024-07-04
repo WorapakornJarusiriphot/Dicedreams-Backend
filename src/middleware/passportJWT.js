@@ -1,6 +1,8 @@
 // ไฟล์นี้เป็นมิดเดิลแวร์สำหรับการตรวจสอบการเข้าสู่ระบบ (authentication) โดยใช้ JWT (JSON Web Token) และไลบรารี passport ซึ่งช่วยในการจัดการการตรวจสอบผู้ใช้ในแอปพลิเคชัน Express.js
 const db = require("../models/index");
 const passport = require('passport');
+// ไลบรารี passport และ passport-jwt ใช้ในการจัดการการตรวจสอบผู้ใช้ (authentication) โดย passport 
+// เป็น middleware ที่นิยมใช้ในการตรวจสอบผู้ใช้ในแอปพลิเคชัน Node.js และ passport-jwt เป็น strategy หนึ่งที่ใช้ในการตรวจสอบ JWT
 const config = require('../configs/auth.config'); 
 
 const JwtStrategy = require('passport-jwt').Strategy,   //เรียกใช้งาน Strategy ของ passport-jwt จากไลบรารี passport-jwt

@@ -1,8 +1,11 @@
 const express = require("express");
+// ไลบรารี express เป็นเฟรมเวิร์กที่นิยมใช้ในการสร้างเซิร์ฟเวอร์ HTTP ด้วย Node.js มีเครื่องมือและมิดเดิลแวร์ที่หลากหลายสำหรับการจัดการคำขอและการตอบกลับ
 const router = express.Router();
 const participateController = require("../controllers/participateController");
 const authentication = require("../middleware/authentication");
 const passportJWT = require('../middleware/passportJWT');
+// ไลบรารี passport และ passport-jwt ใช้ในการจัดการการตรวจสอบผู้ใช้ (authentication) โดย passport 
+// เป็น middleware ที่นิยมใช้ในการตรวจสอบผู้ใช้ในแอปพลิเคชัน Node.js และ passport-jwt เป็น strategy หนึ่งที่ใช้ในการตรวจสอบ JWT
 
 /**
  * @swagger
@@ -45,7 +48,7 @@ const passportJWT = require('../middleware/passportJWT');
  *       400:
  *         description: Invalid input
  */
-router.post("/", [passportJWT.isLogin, authentication.isUser], participateController.create);
+router.post("/", [passportJWT.isLogin, authentication.isUser], participateController.create); // สร้างการเข้าร่วม (participate) ใหม่ โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถสร้าง participate ได้ 
 
 /**
  * @swagger
@@ -63,7 +66,7 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], participateContro
  *               items:
  *                 type: object
  */
-router.get("/", participateController.findAll);
+router.get("/", participateController.findAll); // ดึงข้อมูล participate ทั้งหมด ไม่ต้อง login ก็สามารถดึงข้อมูลได้ 
 
 /**
  * @swagger
@@ -109,7 +112,7 @@ router.get("/", participateController.findAll);
  *       404:
  *         description: Participate not found
  */
-router.get("/:id", [passportJWT.isLogin, authentication.isUser], participateController.findOne);
+router.get("/:id", [passportJWT.isLogin, authentication.isUser], participateController.findOne); // ดึงข้อมูล participate ตาม id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถดึงข้อมูล participate ได้ 
 
 /**
  * @swagger
@@ -155,7 +158,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isUser], participateCont
  *                     type: string
  *                     format: date-time
  */
-router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participateController.findAllByPostGamesId);
+router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participateController.findAllByPostGamesId); // ดึงข้อมูล participate ตาม post_games_id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถดึงข้อมูล participate ได้ 
 
 /**
  * @swagger
@@ -201,7 +204,7 @@ router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participat
  *       400:
  *         description: Invalid input
  */
-router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateController.update);
+router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateController.update); // แก้ไขข้อมูล participate ตาม id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถแก้ไขข้อมูล participate ได้ 
 
 /**
  * @swagger
@@ -225,7 +228,7 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateCont
  *       404:
  *         description: Participate not found
  */
-router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.delete);
+router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.delete); // ลบข้อมูล participate ตาม id โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถลบข้อมูล participate ได้
 
 /**
  * @swagger
@@ -239,6 +242,6 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], parti
  *       200:
  *         description: All participates were deleted successfully.
  */
-router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.deleteAll);
+router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.deleteAll); // ลบข้อมูล participate ทั้งหมด โดยต้อง login และเป็น user เท่านั้น ถ้าเป็น store หรือ admin จะไม่สามารถลบข้อมูล participate ได้
 
-module.exports = router;
+module.exports = router; // export router ออกไปใช้งานที่ไฟล์อื่น ๆ ได้ โดยที่ไฟล์อื่น ๆ สามารถเรียกใช้ router นี้ได้ และใช้งานได้ทุก method ที่อยู่ใน router นี้ 
