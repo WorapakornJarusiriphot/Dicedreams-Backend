@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
-const { uploadImageToS3, deleteImageFromS3, s3 } = require("../utils/s3");
+const { uploadImageToS3, getSignedUrl, deleteImageFromS3 } = require("../utils/s3");
 const config = { DOMAIN: process.env.DOMAIN };
 
 const User = db.user;
@@ -63,7 +63,7 @@ exports.findAll = async (req, res, next) => {
       return {
         ...user.dataValues,
         user_image: user.user_image
-          ? s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: user.user_image })
+          ? getSignedUrl(user.user_image)
           : null,
       };
     });
@@ -84,7 +84,7 @@ exports.findOne = async (req, res, next) => {
 
     if (user) {
       user.user_image = user.user_image
-        ? s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: user.user_image })
+        ? await getSignedUrl(user.user_image)
         : null;
       res.status(200).json(user);
     } else {
@@ -187,4 +187,3 @@ exports.delete = (req, res, next) => {
 exports.deleteAll = (req, res) => {
   res.send({ message: "DeleteAll handler" });
 };
-

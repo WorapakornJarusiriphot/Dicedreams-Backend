@@ -1,6 +1,6 @@
 const db = require("../models");
 const Participate = db.participate;
-const { uploadImageToS3, s3 } = require("../utils/s3");
+const { uploadImageToS3, deleteImageFromS3, getSignedUrl } = require("../utils/s3");
 
 // Create and Save a new Participate
 exports.create = async (req, res, next) => {
@@ -15,7 +15,7 @@ exports.create = async (req, res, next) => {
       where: { user_id, post_games_id },
     });
     if (check) {
-      return res.status(400).send({ message: "You already participate this game!" });
+      return res.status(400).send({ message: "You already participate in this game!" });
     }
 
     const participate = {
@@ -85,10 +85,7 @@ exports.findOne = (req, res) => {
   Participate.findByPk(id)
     .then(async (data) => {
       if (data && data.user_image) {
-        const imageUrl = await s3.getSignedUrl('getObject', {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: data.user_image,
-        });
+        const imageUrl = await getSignedUrl(data.user_image);
         data.user_image = imageUrl;
       }
       res.status(200).json(data);
@@ -187,10 +184,7 @@ exports.findAllByPostGamesId = async (req, res, next) => {
     const data = await Participate.findAll({ where: { post_games_id: post_games_id } });
     for (let i = 0; i < data.length; i++) {
       if (data[i].user_image) {
-        const imageUrl = await s3.getSignedUrl('getObject', {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: data[i].user_image,
-        });
+        const imageUrl = await getSignedUrl(data[i].user_image);
         data[i].user_image = imageUrl;
       }
     }
@@ -207,10 +201,7 @@ exports.findAllByUserId = async (req, res, next) => {
     const data = await Participate.findAll({ where: { user_id: user_id } });
     for (let i = 0; i < data.length; i++) {
       if (data[i].user_image) {
-        const imageUrl = await s3.getSignedUrl('getObject', {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: data[i].user_image,
-        });
+        const imageUrl = await getSignedUrl(data[i].user_image);
         data[i].user_image = imageUrl;
       }
     }

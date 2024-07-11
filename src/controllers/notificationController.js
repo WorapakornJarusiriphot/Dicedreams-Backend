@@ -4,7 +4,7 @@ const Participate = db.participate;
 const User = db.user;
 const Chat = db.chat;
 const PostGame = db.post_games;
-const { s3 } = require("../utils/s3");
+const { getSignedUrl } = require("../utils/s3");
 
 // Define the relationships
 Participate.belongsTo(User, { foreignKey: "user_id" });
@@ -52,11 +52,11 @@ exports.findAll = async (req, res, next) => {
 
           // Update user image URLs
           const userImageUrl = participate.user.user_image 
-            ? await s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: participate.user.user_image }) 
+            ? await getSignedUrl(participate.user.user_image) 
             : null;
 
           const gameUserImageUrl = participate.post_game.user.user_image 
-            ? await s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: participate.post_game.user.user_image }) 
+            ? await getSignedUrl(participate.post_game.user.user_image) 
             : null;
 
           messages.push({

@@ -1,7 +1,7 @@
 const db = require("../models");
 const moment = require("moment");
 const { Op } = require("sequelize");
-const { uploadImageToS3, s3 } = require("../utils/s3");
+const { uploadImageToS3, deleteImageFromS3, getSignedUrl } = require("../utils/s3");
 
 const PostActivity = db.post_activity;
 
@@ -49,8 +49,8 @@ exports.findAll = async (req, res, next) => {
     const condition = search
       ? {
           [Op.or]: [
-            { name_activity: { [Op.like]: `%${search}%` } },
-            { detail_post: { [Op.like]: `%${search}%` } },
+            { name_activity: { [Op.like]: `%{search}%` } },
+            { detail_post: { [Op.like]: `%{search}%` } },
           ],
           status_post: { [Op.not]: "unActive" },
         }
@@ -59,15 +59,13 @@ exports.findAll = async (req, res, next) => {
         };
 
     const post_activity = await PostActivity.findAll({ where: condition });
-    for (let i = 0; i < post_activity.length; i++) {
-      if (post_activity[i].post_activity_image) {
-        post_activity[i].post_activity_image = await s3.getSignedUrl('getObject', {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: post_activity[i].post_activity_image,
-        });
+    const postsWithImageUrls = await Promise.all(post_activity.map(async (post) => {
+      if (post.post_activity_image) {
+        post.post_activity_image = await getSignedUrl(post.post_activity_image);
       }
-    }
-    res.status(200).json(post_activity);
+      return post;
+    }));
+    res.status(200).json(postsWithImageUrls);
   } catch (error) {
     next(error);
   }
@@ -84,16 +82,14 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     console.log(`Found posts: ${post_activity.length}`);
 
-    for (let i = 0; i < post_activity.length; i++) {
-      if (post_activity[i].post_activity_image) {
-        post_activity[i].post_activity_image = await s3.getSignedUrl('getObject', {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: post_activity[i].post_activity_image,
-        });
+    const postsWithImageUrls = await Promise.all(post_activity.map(async (post) => {
+      if (post.post_activity_image) {
+        post.post_activity_image = await getSignedUrl(post.post_activity_image);
       }
-    }
+      return post;
+    }));
 
-    res.status(200).json(post_activity);
+    res.status(200).json(postsWithImageUrls);
   } catch (error) {
     console.error("Failed to fetch store posts:", error.message);
     next(error);
@@ -105,10 +101,7 @@ exports.findOne = async (req, res, next) => {
     const post_activity_id = req.params.id;
     const post_activity = await PostActivity.findByPk(post_activity_id);
     if (post_activity.post_activity_image) {
-      post_activity.post_activity_image = await s3.getSignedUrl('getObject', {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: post_activity.post_activity_image,
-      });
+      post_activity.post_activity_image = await getSignedUrl(post_activity.post_activity_image);
     }
     res.status(200).json(post_activity);
   } catch (error) {
@@ -129,11 +122,7 @@ exports.update = async (req, res, next) => {
 
       // ลบรูปภาพเก่าออกจาก S3
       if (oldImage) {
-        const params = {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: oldImage,
-        };
-        await s3.deleteObject(params).promise();
+        await deleteImageFromS3(oldImage);
       }
     }
 
@@ -155,11 +144,7 @@ exports.delete = async (req, res, next) => {
     const post_activity = await PostActivity.findByPk(post_activity_id);
 
     if (post_activity.post_activity_image) {
-      const params = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: post_activity.post_activity_image,
-      };
-      await s3.deleteObject(params).promise();
+      await deleteImageFromS3(post_activity.post_activity_image);
     }
 
     await PostActivity.destroy({
@@ -179,11 +164,7 @@ exports.deleteAll = async (req, res, next) => {
 
     for (let i = 0; i < post_activity.length; i++) {
       if (post_activity[i].post_activity_image) {
-        const params = {
-          Bucket: process.env.S3_BUCKET_NAME,
-          Key: post_activity[i].post_activity_image,
-        };
-        await s3.deleteObject(params).promise();
+        await deleteImageFromS3(post_activity[i].post_activity_image);
       }
     }
 
@@ -191,7 +172,7 @@ exports.deleteAll = async (req, res, next) => {
       where: {},
       truncate: false,
     });
-    res.status(204).json(post_activity);
+    res.status(204).json({ message: "All PostActivities were deleted successfully." });
   } catch (error) {
     next(error);
   }
