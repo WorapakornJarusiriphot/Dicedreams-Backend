@@ -9,7 +9,7 @@
     "start": "node src/server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Worapakorn Jarusiriphot",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1654.0",
