@@ -4,6 +4,7 @@ const Participate = db.participate;
 const User = db.user;
 const Chat = db.chat;
 const PostGame = db.post_games;
+const { s3 } = require("../utils/s3");
 
 // Define the relationships
 Participate.belongsTo(User, { foreignKey: "user_id" });
@@ -49,13 +50,22 @@ exports.findAll = async (req, res, next) => {
             },
           });
 
+          // Update user image URLs
+          const userImageUrl = participate.user.user_image 
+            ? await s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: participate.user.user_image }) 
+            : null;
+
+          const gameUserImageUrl = participate.post_game.user.user_image 
+            ? await s3.getSignedUrl('getObject', { Bucket: process.env.S3_BUCKET_NAME, Key: participate.post_game.user.user_image }) 
+            : null;
+
           messages.push({
             type: "participate",
             data: {
               ...participate.toJSON(),
               first_name: participate.user.first_name,
               last_name: participate.user.last_name,
-              user_image: participate.user.user_image,
+              user_image: userImageUrl,
               name_games: participate.post_game.name_games,
               detail_post: participate.post_game.detail_post,
               participants: postParticipants + 1,
@@ -64,7 +74,7 @@ exports.findAll = async (req, res, next) => {
               time_meet: participate.post_game.time_meet,
               game_user_first_name: participate.post_game.user.first_name,
               game_user_last_name: participate.post_game.user.last_name,
-              game_user_image: participate.post_game.user.user_image,
+              game_user_image: gameUserImageUrl,
             },
             notification_id: notifications[i].notification_id,
             entity_id: notifications[i].entity_id,
