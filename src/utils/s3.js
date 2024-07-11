@@ -28,7 +28,25 @@ async function uploadImageToS3(baseImage) {
   };
 
   const uploadResult = await s3.upload(params).promise();
-  return uploadResult.Location;
+  return uploadResult.Key;
 }
 
-module.exports = { uploadImageToS3 };
+async function getSignedUrl(key) {
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: key,
+  };
+
+  return s3.getSignedUrl('getObject', params);
+}
+
+async function deleteImageFromS3(key) {
+  const params = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: key,
+  };
+
+  return s3.deleteObject(params).promise();
+}
+
+module.exports = { uploadImageToS3, getSignedUrl, deleteImageFromS3, s3 };
