@@ -1,6 +1,6 @@
-require('dotenv').config();
 const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -28,13 +28,14 @@ async function uploadImageToS3(baseImage) {
   };
 
   const uploadResult = await s3.upload(params).promise();
-  return uploadResult.Key;
+  return uploadResult.Key; // ส่งคืน key ของไฟล์ที่ถูกอัพโหลด
 }
 
 async function getSignedUrl(key) {
   const params = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
+    Expires: 60 * 60, // กำหนดเวลาให้ URL มีอายุ 1 ชั่วโมง
   };
 
   return s3.getSignedUrl('getObject', params);
