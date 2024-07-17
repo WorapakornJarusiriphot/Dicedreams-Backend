@@ -9,60 +9,25 @@ const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostGames = db.post_games;
-
+const JoinGame = db.joingame;
+const User = db.user;
 // create fucntion to create a new game and save it to the database
+
 exports.create = async (req, res, next) => {
   try {
-    // Validate request
-    if (!req.body.name_games) {
-      res.status(400).send({
-        message: "Content can not be empty!",
-      });
-      return;
-    }
-
-    console.log(req.body.date_meet, "date_meet");
-    // Create a game
-    const game = {
-      name_games: req.body.name_games,
-      detail_post: req.body.detail_post,
-      num_people: req.body.num_people,
-      date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
-      time_meet: req.body.time_meet,
-      games_image: req.body.games_image
-        ? await saveImageToDisk(req.body.games_image)
-        : req.body.games_image, // ส่งรูปเกมไปเก็บในระบบ
-      status_post: req.body.status_post,
-      creation_date: req.body.creation_date,
-      users_id: req.body.users_id,
-    };
-
-    // Save game in the database async
-    const data = await PostGames.create(game);
-    res
-      .status(201)
-      .json({ message: "Game was created successfully.", data: data });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.createComment = async (req, res, next) => {
-  try {
-    const { post_games_id, comment,  } = req.body;
+    const { post_games_id  } = req.body;
 
     // Create a game
     const game = {
       post_games_id: post_games_id,
-      comment: comment,
       users_id: req.user.users_id,
     };
     console.log(game)
     // Save game in the database async
-    const data = await Comments.create(game);
+    const data = await JoinGame.create(game);
     res
       .status(201)
-      .json({ message: "Game was created successfully.", data: data });
+      .json({ message: "join game was created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -70,8 +35,9 @@ exports.createComment = async (req, res, next) => {
 
 // Retrieve all games from the database.
 exports.findAll = (req, res) => {
+
   const { search } = req.query;
-  console.log(`Received search query for games: ${search}`);
+  console.log(`Received search query for games: ${search}`); // เพิ่ม log เพื่อตรวจสอบคำค้นหา
 
   const condition = search
     ? {
@@ -79,21 +45,22 @@ exports.findAll = (req, res) => {
           { name_games: { [Op.like]: `%${search}%` } },
           { detail_post: { [Op.like]: `%${search}%` } },
         ],
-        status_post: { [Op.not]: "unActive" },
+        status: { [Op.not]: "unActive" },
       }
     : {
-        status_post: { [Op.not]: "unActive" },
+        status: { [Op.not]: "unActive" },
       };
 
-  PostGames.findAll({ where: condition })
-    .then((data) => {
-      data.map((post_games) => {
-        if (post_games.games_image) {
-          post_games.games_image = `${req.protocol}://${req.get(
-            "host"
-          )}/images/${post_games.games_image}`;
-        }
-      });
+  // JoinGame.findAll({ where: condition })
+  JoinGame.findAll({include: [
+    {
+      model: User,
+      as: 'user',
+      attributes: ['users_id', 'username', 'email', 'phone_number'] // คุณสามารถเพิ่ม attributes ที่ต้องการได้
+    }
+  ]})
+
+  .then((data) => {
       res.send(data);
     })
     .catch((err) => {
@@ -103,33 +70,23 @@ exports.findAll = (req, res) => {
     });
 };
 
-// ดึงโพสต์ทั้งหมดของผู้ใช้เฉพาะ
-exports.findAllUserPosts = (req, res) => {
-  const userId = req.params.userId;
-
-  PostGames.findAll({
-    where: { users_id: userId },
-  })
-    .then((data) => {
-      data.forEach((post) => {
-        if (post.games_image) {
-          post.games_image = `${req.protocol}://${req.get("host")}/images/${post.games_image}`;
-        }
-      });
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "มีข้อผิดพลาดเกิดขึ้นขณะดึงข้อมูลโพสต์",
-      });
-    });
-};
-
 // Find a single game with an id
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  PostGames.findByPk(id)
+  JoinGame.findByPk(id, {
+    include: [{
+      model: Comments,
+      as: 'comments',
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['users_id', 'username'] // คุณสามารถเพิ่ม attributes ที่ต้องการได้
+        }
+      ]
+    }]
+  })
     .then((data) => {
       if (data.games_image) {
         data.games_image = `${req.protocol}://${req.get("host")}/images/${
@@ -152,10 +109,10 @@ exports.update = async (req, res, next) => {
   //   check image is updated
   if (req.body.games_image) {
     if (req.body.games_image.search("data:image") != -1) {
-      const postGames = await PostGames.findByPk(id);
-      const uploadPath = path.resolve("./") + "/src/public/images/";
+      const postGames = await JoinGame.findByPk(id);
+      const uploadPath = path.resolve("./") + "/src/app/api/public/images/";
 
-      fs.unlink(uploadPath + postGames.games_image, function (err) {
+      fs.unlink(uploadPath + JoinGame.games_image, function (err) {
         console.log("File deleted!");
       });
 
@@ -164,7 +121,7 @@ exports.update = async (req, res, next) => {
   }
   req.body.date_meet = moment(req.body.date_meet, "MM-DD-YYYY");
 
-  PostGames.update(req.body, {
+  JoinGame.update(req.body, {
     where: { post_games_id: id },
   })
     .then((num) => {
@@ -189,7 +146,7 @@ exports.update = async (req, res, next) => {
 exports.delete = (req, res) => {
   const id = req.params.id;
 
-  PostGames.destroy({
+  JoinGame.destroy({
     where: { post_games_id: id },
   })
     .then((num) => {
@@ -212,7 +169,7 @@ exports.delete = (req, res) => {
 
 // Delete all games from the database.
 exports.deleteAll = (req, res) => {
-  PostGames.destroy({
+  JoinGame.destroy({
     where: {},
     truncate: false,
   })
@@ -229,7 +186,7 @@ exports.deleteAll = (req, res) => {
 async function saveImageToDisk(baseImage) {
   const projectPath = path.resolve("./");
 
-  const uploadPath = `${projectPath}/src/public/images/`;
+  const uploadPath = `${projectPath}/src/app/api/public/images/`;
 
   const ext = baseImage.substring(
     baseImage.indexOf("/") + 1,

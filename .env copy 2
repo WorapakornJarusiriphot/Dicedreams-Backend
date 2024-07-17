@@ -1,0 +1,31 @@
+# Secret key for JWT encoding and decoding
+JWT_SECRET=worapakorn-secret-key
+
+# JWT expiration time in seconds
+JWT_EXPIRATION=3600
+JWT_REFRESH_EXPIRATION=86400
+
+# Domain URL for the application
+DOMAIN=https://dicedreams-backend-deploy-to-render.onrender.com
+
+# Database configuration
+DB_HOST=dicedreams.crau6aqukzxe.ap-southeast-2.rds.amazonaws.com
+DB_USER=admin
+DB_PASSWORD=Worapakorn-555
+DB_NAME=dicedreams
+DB_DIALECT=mysql
+
+# Pool configuration
+POOL_MAX=5
+POOL_MIN=0
+POOL_ACQUIRE=30000
+POOL_IDLE=10000
+
+# Port for the server to listen on
+PORT=8080
+
+# AWS S3 configuration
+AWS_ACCESS_KEY_ID=AKIAZI2LFHNZJDVF5OGS
+AWS_SECRET_ACCESS_KEY=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
+AWS_REGION=ap-southeast-2
+S3_BUCKET_NAME=dicedreams-images

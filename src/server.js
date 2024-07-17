@@ -17,6 +17,7 @@ const routerChat = require("./routers/chat");
 const routParticipate = require("./routers/participate");
 const routerStore = require("./routers/store");
 const routerNotification = require("./routers/notification");
+const routerJoinGame = require("./routers/joinGames");
 
 // Import Swagger configuration
 const { swaggerUi, specs } = require('./configs/swaggerConfig');
@@ -79,6 +80,7 @@ app.use('/api/chat', routerChat);
 app.use('/api/participate', routParticipate);
 app.use('/api/store', routerStore);
 app.use('/api/notification', routerNotification);
+app.use('/api/joinGame', routerJoinGame);
 
 // Serve swagger.json
 app.get('/swagger.json', (req, res) => {
