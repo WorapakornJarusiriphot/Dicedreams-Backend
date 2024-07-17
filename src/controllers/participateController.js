@@ -3,6 +3,7 @@
 const db = require("../models");
 const Participate = db.participate;
 const User = db.user; // เพิ่มการ import โมเดล User
+const config = { DOMAIN: process.env.DOMAIN };
 
 // Create and Save a new Participate
 exports.create = async (req, res, next) => {
@@ -242,9 +243,22 @@ exports.findAllByPostGamesId = async (req, res, next) => {
   try {
     const data = await Participate.findAll({
       where: { post_games_id: post_games_id },
-      include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }] // เพิ่มการ include User model
+      include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }]
     });
-    res.status(200).json(data);
+
+    const participantsWithPhotoDomain = data.map((participant) => {
+      return {
+        ...participant.dataValues,
+        user: {
+          ...participant.dataValues.user,
+          user_image: participant.user.user_image
+            ? `${config.DOMAIN}/images/${participant.user.user_image}`
+            : null,
+        },
+      };
+    });
+
+    res.status(200).json(participantsWithPhotoDomain);
   } catch (error) {
     next(error);
   }
