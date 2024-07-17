@@ -24,7 +24,12 @@ db.participate = require("./participate")(sequelize, Sequelize);
 db.store = require("./store")(sequelize, Sequelize);
 db.notification = require("./notification")(sequelize, Sequelize);
 
+// กำหนดความสัมพันธ์ระหว่าง user และ store
 db.user.hasOne(db.store, { foreignKey: "users_id", as: "store" });
 db.store.belongsTo(db.user, { foreignKey: "users_id" });
+
+// กำหนดความสัมพันธ์ระหว่าง participate และ user
+db.participate.belongsTo(db.user, { foreignKey: "user_id", as: "user" });
+db.user.hasMany(db.participate, { foreignKey: "user_id" });
 
 module.exports = db;
