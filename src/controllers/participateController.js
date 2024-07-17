@@ -3,7 +3,6 @@
 const db = require("../models");
 const Participate = db.participate;
 const User = db.user; // เพิ่มการ import โมเดล User
-const config = { DOMAIN: process.env.DOMAIN };
 
 // Create and Save a new Participate
 exports.create = async (req, res, next) => {
@@ -246,13 +245,13 @@ exports.findAllByPostGamesId = async (req, res, next) => {
       include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }]
     });
 
-    const participantsWithPhotoDomain = data.map((participant) => {
+    const participantsWithPhotoDomain = await data.map((participant) => {
       return {
         ...participant.dataValues,
         user: {
           ...participant.dataValues.user,
           user_image: participant.user.user_image
-            ? `${config.DOMAIN}/images/${participant.user.user_image}`
+            ? `https://dicedreams-backend-deploy-to-render.onrender.com/images/${participant.user.user_image}`
             : null,
         },
       };
