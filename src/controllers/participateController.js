@@ -2,6 +2,7 @@
 
 const db = require("../models");
 const Participate = db.participate;
+const User = db.user; // เพิ่มการ import โมเดล User
 
 // Create and Save a new Participate
 exports.create = async (req, res, next) => {
