@@ -32,4 +32,8 @@ db.store.belongsTo(db.user, { foreignKey: "users_id" });
 db.participate.belongsTo(db.user, { foreignKey: "user_id", as: "user" });
 db.user.hasMany(db.participate, { foreignKey: "user_id" });
 
+// กำหนดความสัมพันธ์ระหว่าง chat และ user
+db.chat.belongsTo(db.user, { foreignKey: "user_id", as: "user" });
+db.user.hasMany(db.chat, { foreignKey: "user_id" });
+
 module.exports = db;

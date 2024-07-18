@@ -41,6 +41,14 @@ module.exports = (sequelize, Sequelize) => {
     }
   );
 
+  // เพิ่มการเชื่อมต่อความสัมพันธ์กับ user
+  Chat.associate = (models) => {
+    Chat.belongsTo(models.user, {
+      foreignKey: "user_id",
+      as: "user",
+    });
+  };
+
   sequelize
     .sync()
     .then(() => console.log("Table `chat` has been created successfully."))

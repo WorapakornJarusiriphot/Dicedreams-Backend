@@ -236,6 +236,7 @@ exports.findAllByUser = (req, res) => {
 };
 
 // Find all games by post_games_id
+// Find all games by post_games_id
 exports.findAllByPostGamesId = (req, res) => {
   const post_games_id = req.params.id;
 
