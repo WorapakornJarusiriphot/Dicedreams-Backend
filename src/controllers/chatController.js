@@ -236,7 +236,8 @@ exports.findAllByUser = (req, res) => {
 
 // Find all games by post_games_id
 exports.findAllByPostGamesId = (req, res) => {
-  const post_games_id = req.params.post_games_id;
+  const post_games_id = req.params.id; // ใช้ req.params.id แทน req.params.post_games_id
+
   Chat.findAll({ where: { post_games_id: post_games_id } })
     .then((data) => {
       res.status(200).json(data);
@@ -244,7 +245,7 @@ exports.findAllByPostGamesId = (req, res) => {
     .catch((error) => {
       res.status(500).json({
         message:
-          error.message || "Some error occurred while retrieving games.",
+          error.message || "Some error occurred while retrieving chats.",
       });
     });
 };
