@@ -44,6 +44,8 @@ const passportJWT = require('../middleware/passportJWT');
  *         description: The chat was successfully created
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
  */
 router.post("/", [passportJWT.isLogin, authentication.isUser], chatController.create);
 
@@ -76,6 +78,8 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], chatController.cr
  *                     type: string
  *                   post_games_id:
  *                     type: string
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/", [passportJWT.isLogin, authentication.isUser], chatController.findAll);
 
@@ -113,6 +117,8 @@ router.get("/", [passportJWT.isLogin, authentication.isUser], chatController.fin
  *                   type: string
  *                 post_games_id:
  *                   type: string
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Chat not found
  */
@@ -150,10 +156,12 @@ router.get("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *     responses:
  *       200:
  *         description: Chat was updated successfully.
- *       404:
- *         description: Chat not found
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Chat not found
  */
 router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.update);
 
@@ -175,6 +183,8 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], chatController.
  *     responses:
  *       200:
  *         description: Chat was deleted successfully.
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Chat not found
  */
@@ -191,6 +201,8 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], chatC
  *     responses:
  *       200:
  *         description: All chats were deleted successfully.
+ *       401:
+ *         description: Unauthorized
  */
 router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatController.deleteAll);
 
@@ -230,6 +242,8 @@ router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatCont
  *                     type: string
  *                   post_games_id:
  *                     type: string
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], chatController.findAllByPostGamesId);
 

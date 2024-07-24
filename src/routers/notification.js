@@ -41,6 +41,8 @@ const passportJWT = require('../middleware/passportJWT');
  *                   updatedAt:
  *                     type: string
  *                     format: date-time
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.findAll);
 
@@ -69,6 +71,8 @@ router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
  *         description: Notification was updated successfully.
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Notification not found
  */
@@ -85,6 +89,8 @@ router.put("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
  *     responses:
  *       200:
  *         description: All notifications marked as read successfully.
+ *       401:
+ *         description: Unauthorized
  */
 router.put("/mark-all-as-read", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.markAllAsRead);
 

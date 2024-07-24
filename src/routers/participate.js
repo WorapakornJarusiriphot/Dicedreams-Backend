@@ -44,6 +44,8 @@ const passportJWT = require('../middleware/passportJWT');
  *         description: The participation was successfully created
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
  */
 router.post("/", [passportJWT.isLogin, authentication.isUser], participateController.create);
 
@@ -106,6 +108,8 @@ router.get("/", participateController.findAll);
  *                 updatedAt:
  *                   type: string
  *                   format: date-time
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Participate not found
  */
@@ -154,6 +158,8 @@ router.get("/:id", [passportJWT.isLogin, authentication.isUser], participateCont
  *                   updatedAt:
  *                     type: string
  *                     format: date-time
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participateController.findAllByPostGamesId);
 
@@ -196,10 +202,12 @@ router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participat
  *     responses:
  *       200:
  *         description: Participate was updated successfully.
- *       404:
- *         description: Participate not found
  *       400:
  *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Participate not found
  */
 router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateController.update);
 
@@ -222,6 +230,8 @@ router.put("/:id", [passportJWT.isLogin, authentication.isUser], participateCont
  *     responses:
  *       200:
  *         description: Participate was deleted successfully.
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Participate not found
  */
@@ -238,6 +248,8 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrUser], parti
  *     responses:
  *       200:
  *         description: All participates were deleted successfully.
+ *       401:
+ *         description: Unauthorized
  */
 router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], participateController.deleteAll);
 
