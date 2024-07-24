@@ -2,6 +2,7 @@
 
 const db = require("../models");
 const Participate = db.participate;
+const User = db.user; // เพิ่มการ import โมเดล User
 
 // Create and Save a new Participate
 exports.create = async (req, res, next) => {
@@ -241,6 +242,7 @@ exports.findAllByPostGamesId = async (req, res, next) => {
   try {
     const data = await Participate.findAll({
       where: { post_games_id: post_games_id },
+      include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }] // เพิ่มการ include User model
     });
     res.status(200).json(data);
   } catch (error) {

@@ -90,11 +90,13 @@ app.get('/swagger.json', (req, res) => {
 app.use(errorHandler);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
+const DOMAIN = process.env.DOMAIN;
+
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
-  console.log(`Visit the application at: http://localhost:${PORT}`);
-  console.log(`API documentation is available at: http://localhost:${PORT}/api-docs`);
-  console.log(`Swagger JSON is available at: http://localhost:${PORT}/swagger.json`);
+  console.log(`Visit the application at: ${DOMAIN}`);
+  console.log(`API documentation is available at: ${DOMAIN}/api-docs`);
+  console.log(`Swagger JSON is available at: ${DOMAIN}/swagger.json`);
 });
 
 // console.log('Using mysql2 version:', require('mysql2').version);

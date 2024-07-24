@@ -29,7 +29,7 @@ const passportJWT = require('../middleware/passportJWT');
  *               participant_apply_datetime:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-06-07T12:34:56Z"
+ *                 example: "07/13/2024 02:50:00"
  *               participant_status:
  *                 type: string
  *                 example: "pending"
@@ -183,7 +183,7 @@ router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participat
  *               participant_apply_datetime:
  *                 type: string
  *                 format: date-time
- *                 example: "2024-06-07T12:34:56Z"
+ *                 example: "07/13/2024 02:50:00"
  *               participant_status:
  *                 type: string
  *                 example: "approved"

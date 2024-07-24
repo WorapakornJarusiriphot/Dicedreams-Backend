@@ -1,5 +1,6 @@
 const db = require("../models");
 const Chat = db.chat;
+const User = db.user;
 
 // Create Chat
 exports.create = async (req, res, next) => {
@@ -235,16 +236,26 @@ exports.findAllByUser = (req, res) => {
 };
 
 // Find all games by post_games_id
+// Find all games by post_games_id
 exports.findAllByPostGamesId = (req, res) => {
-  const post_games_id = req.params.post_games_id;
-  Chat.findAll({ where: { post_games_id: post_games_id } })
+  const post_games_id = req.params.id;
+
+  Chat.findAll({
+    where: { post_games_id: post_games_id },
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["first_name", "last_name", "user_image"]
+      }
+    ]
+  })
     .then((data) => {
       res.status(200).json(data);
     })
     .catch((error) => {
       res.status(500).json({
-        message:
-          error.message || "Some error occurred while retrieving games.",
+        message: error.message || "Some error occurred while retrieving chats.",
       });
     });
 };
