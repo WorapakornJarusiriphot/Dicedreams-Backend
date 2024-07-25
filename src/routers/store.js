@@ -285,7 +285,9 @@ router.get("/user/:id", [passportJWT.isLogin, authentication.isStoreOrUser], sto
  *       404:
  *         description: Store not found
  *       500:
- *         description: Please enter users_id correctly. || Cannot add or update a child row: a foreign key constraint fails (`dicedreams`.`store`, CONSTRAINT `store_ibfk_1` FOREIGN KEY (`users_id`) REFERENCES `users` (`users_id`)).
+ *         description: |
+ *           Please enter users_id correctly. || 
+ *           Cannot add or update a child row: a foreign key constraint fails (`dicedreams`.`store`, CONSTRAINT `store_ibfk_1` FOREIGN KEY (`users_id`) REFERENCES `users` (`users_id`)).
  */
 router.put("/:id", [passportJWT.isLogin, authentication.isStore], storeController.update);
 
