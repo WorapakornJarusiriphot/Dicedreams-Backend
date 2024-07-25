@@ -21,7 +21,16 @@ exports.create = async (req, res, next) => {
       return;
     }
 
-    console.log(req.body.date_meet, "date_meet");
+    // Handle games image
+    let gamesImage;
+    if (req.body.games_image) {
+      if (req.body.games_image.startsWith("data:image")) {
+        gamesImage = await saveImageToDisk(req.body.games_image);
+      } else {
+        gamesImage = req.body.games_image;
+      }
+    }
+
     // Create a game
     const game = {
       name_games: req.body.name_games,
@@ -29,9 +38,7 @@ exports.create = async (req, res, next) => {
       num_people: req.body.num_people,
       date_meet: moment(req.body.date_meet, "MM-DD-YYYY"),
       time_meet: req.body.time_meet,
-      games_image: req.body.games_image
-        ? await saveImageToDisk(req.body.games_image)
-        : req.body.games_image, // ส่งรูปเกมไปเก็บในระบบ
+      games_image: gamesImage,
       status_post: req.body.status_post,
       creation_date: req.body.creation_date,
       users_id: req.body.users_id,
@@ -39,9 +46,7 @@ exports.create = async (req, res, next) => {
 
     // Save game in the database async
     const data = await PostGames.create(game);
-    res
-      .status(201)
-      .json({ message: "Game was created successfully.", data: data });
+    res.status(201).json({ message: "Game was created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -128,15 +133,17 @@ exports.findOne = (req, res) => {
 exports.update = async (req, res, next) => {
   const id = req.params.id;
 
-  //   check image is updated
+  // Check if image is updated
   if (req.body.games_image) {
-    if (req.body.games_image.search("data:image") != -1) {
+    if (req.body.games_image.startsWith("data:image")) {
       const postGames = await PostGames.findByPk(id);
       const uploadPath = path.resolve("./") + "/src/public/images/";
 
-      fs.unlink(uploadPath + postGames.games_image, function (err) {
-        console.log("File deleted!");
-      });
+      if (postGames.games_image) {
+        fs.unlink(uploadPath + postGames.games_image, function (err) {
+          if (err) console.log("File not found or already deleted.");
+        });
+      }
 
       req.body.games_image = await saveImageToDisk(req.body.games_image);
     }

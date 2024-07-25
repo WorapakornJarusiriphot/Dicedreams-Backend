@@ -19,6 +19,16 @@ exports.create = async (req, res, next) => {
       return;
     }
 
+    // Handle store image
+    let storeImage;
+    if (req.body.store_image) {
+      if (req.body.store_image.startsWith("data:image")) {
+        storeImage = await saveImageToDisk(req.body.store_image);
+      } else {
+        storeImage = req.body.store_image;
+      }
+    }
+
     // Create a Store
     const store = {
       name_store: req.body.name_store,
@@ -29,17 +39,13 @@ exports.create = async (req, res, next) => {
       sub_district: req.body.sub_district,
       road: req.body.road,
       alley: req.body.alley,
-      store_image: req.body.store_image
-        ? await saveImageToDisk(req.body.store_image)
-        : req.body.store_image,
+      store_image: storeImage,
       users_id: req.body.users_id,
     };
 
     // Save Store in the database async
     const data = await Store.create(store);
-    res
-      .status(201)
-      .json({ message: "Store was created successfully.", data: data });
+    res.status(201).json({ message: "Store was created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -96,14 +102,16 @@ exports.update = async (req, res, next) => {
   const id = req.params.id;
 
   if (req.body.store_image) {
-    //   check image is updated
-    if (req.body.store_image.search("data:image") != -1) {
+    // Check if image is updated
+    if (req.body.store_image.startsWith("data:image")) {
       const store = await Store.findByPk(id);
       const uploadPath = path.resolve("./") + "/src/public/images/";
 
-      fs.unlink(uploadPath + store.store_image, function (err) {
-        console.log("File deleted!");
-      });
+      if (store.store_image) {
+        fs.unlink(uploadPath + store.store_image, function (err) {
+          if (err) console.log("File not found or already deleted.");
+        });
+      }
 
       req.body.store_image = await saveImageToDisk(req.body.store_image);
     }

@@ -21,6 +21,7 @@ exports.create = async (req, res, next) => {
       });
       return;
     }
+
     let birthday = moment(req.body.birthday, "MM-DD-YYYY");
     if (!birthday.isValid()) {
       res.status(400).send({
@@ -29,9 +30,19 @@ exports.create = async (req, res, next) => {
       return;
     }
 
-    //hash password
+    // Hash password
     const salt = await bcrypt.genSalt(5);
     const passwordHash = await bcrypt.hash(req.body.password, salt);
+
+    // Handle user image
+    let userImage;
+    if (req.body.user_image) {
+      if (req.body.user_image.startsWith("data:image")) {
+        userImage = await saveImageToDisk(req.body.user_image);
+      } else {
+        userImage = req.body.user_image;
+      }
+    }
 
     // Create a user
     const user = {
@@ -43,9 +54,7 @@ exports.create = async (req, res, next) => {
       birthday: birthday,
       phone_number: req.body.phone_number,
       gender: req.body.gender,
-      user_image: req.body.user_image
-        ? await saveImageToDisk(req.body.user_image)
-        : req.body.user_image,
+      user_image: userImage,
     };
 
     await User.create(user);
@@ -54,7 +63,21 @@ exports.create = async (req, res, next) => {
       message: "User was registered successfully!",
     });
   } catch (error) {
-    next(error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      res.status(400).json({
+        error: {
+          status_code: 400,
+          message: "Username or email already exists",
+        },
+      });
+    } else {
+      res.status(500).json({
+        error: {
+          status_code: 500,
+          message: error.message || "Some error occurred while creating the User.",
+        },
+      });
+    }
   }
 };
 
@@ -103,13 +126,14 @@ exports.update = async (req, res, next) => {
   try {
     const users_id = req.params.id;
 
+    // Handle user image
     if (req.body.user_image) {
-      if (req.body.user_image.search("data:image") != -1) {
+      if (req.body.user_image.startsWith("data:image")) {
         const user = await User.findByPk(users_id);
         const uploadPath = path.resolve("./") + "/src/public/images/";
 
         fs.unlink(uploadPath + user.user_image, function (err) {
-          console.log("File deleted!");
+          if (err) console.log("File not found or already deleted.");
         });
 
         req.body.user_image = await saveImageToDisk(req.body.user_image);
@@ -131,27 +155,32 @@ exports.update = async (req, res, next) => {
       req.body.password = await bcrypt.hash(req.body.password, salt);
     }
 
-    User.update(req.body, {
+    const [updated] = await User.update(req.body, {
       where: { users_id: users_id },
-    })
-      .then((num) => {
-        if (num == 1) {
-          res.send({
-            message: "User was updated successfully.",
-          });
-        } else {
-          res.send({
-            message: `Cannot update User with id=${users_id}. Maybe User was not found or req.body is empty!`,
-          });
-        }
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: "Error updating User with id=" + users_id,
-        });
+    });
+
+    if (updated) {
+      res.send({
+        message: "User was updated successfully.",
       });
+    } else {
+      res.status(404).send({
+        message: `Cannot update User with id=${users_id}. Maybe User was not found or req.body is empty!`,
+      });
+    }
   } catch (error) {
-    next(error);
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      res.status(400).json({
+        error: {
+          status_code: 400,
+          message: "Username or email already exists",
+        },
+      });
+    } else {
+      res.status(500).send({
+        message: "Error updating User with id=" + users_id,
+      });
+    }
   }
 };
 

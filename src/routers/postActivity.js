@@ -254,6 +254,30 @@ router.delete("/:id", [passportJWT.isLogin, authentication.isAdminOrStore], post
 
 /**
  * @swagger
+ * /postActivity:
+ *   delete:
+ *     summary: Delete all activity posts
+ *     tags: [PostActivities]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: All activity posts were deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "All PostActivities were deleted successfully."
+ *       401:
+ *         description: Unauthorized
+ */
+router.delete("/", [passportJWT.isLogin, authentication.isAdmin], postActivityController.deleteAll);
+
+/**
+ * @swagger
  * /postActivity/store/{storeId}:
  *   get:
  *     summary: Retrieve all activity posts by store ID
