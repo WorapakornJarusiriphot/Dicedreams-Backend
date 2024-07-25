@@ -22,6 +22,16 @@ exports.create = async (req, res, next) => {
       store_id,
     } = req.body;
 
+    // Handle post activity image
+    let postActivityImage;
+    if (post_activity_image) {
+      if (post_activity_image.startsWith("data:image")) {
+        postActivityImage = await saveImageToDisk(post_activity_image);
+      } else {
+        postActivityImage = post_activity_image;
+      }
+    }
+
     const data = {
       name_activity: name_activity,
       status_post: status_post,
@@ -30,9 +40,7 @@ exports.create = async (req, res, next) => {
       date_activity: moment(date_activity, "MM-DD-YYYY"),
       time_activity: time_activity,
       store_id: store_id,
-      post_activity_image: post_activity_image
-        ? await saveImageToDisk(post_activity_image)
-        : post_activity_image,
+      post_activity_image: postActivityImage,
     };
     const post_activity = await PostActivity.create(data);
     res.status(201).json(post_activity);
@@ -116,16 +124,18 @@ exports.update = async (req, res, next) => {
     const post_activity_id = req.params.id;
 
     if (req.body.post_activity_image) {
-      if (req.body.post_activity_image.search("data:image") != -1) {
+      if (req.body.post_activity_image.startsWith("data:image")) {
         const postactivity = await PostActivity.findByPk(post_activity_id);
         const uploadPath = path.resolve("./") + "/src/public/images/";
 
-        fs.unlink(
-          uploadPath + postactivity.post_activity_image,
-          function (err) {
-            console.log("File deleted!");
-          }
-        );
+        if (postactivity.post_activity_image) {
+          fs.unlink(
+            uploadPath + postactivity.post_activity_image,
+            function (err) {
+              if (err) console.log("File not found or already deleted.");
+            }
+          );
+        }
 
         req.body.post_activity_image = await saveImageToDisk(
           req.body.post_activity_image
@@ -133,6 +143,7 @@ exports.update = async (req, res, next) => {
       }
     }
     req.body.date_activity = moment(req.body.date_activity, "MM-DD-YYYY");
+
     await PostActivity.update(req.body, {
       where: {
         post_activity_id,
@@ -147,12 +158,31 @@ exports.update = async (req, res, next) => {
 exports.delete = async (req, res, next) => {
   try {
     const post_activity_id = req.params.id;
-    const post_activity = await PostActivity.destroy({
+    const post_activity = await PostActivity.findByPk(post_activity_id);
+
+    if (post_activity && post_activity.post_activity_image) {
+      const uploadPath = path.resolve("./") + "/src/public/images/";
+      fs.unlink(uploadPath + post_activity.post_activity_image, function (err) {
+        if (err) console.log("File not found or already deleted.");
+      });
+    }
+
+    const deleted = await PostActivity.destroy({
       where: {
         post_activity_id,
       },
     });
-    res.status(204).json({ message: "PostActivity was deleted successfully." });
+
+    if (deleted) {
+      res.status(200).json({
+        message: "PostActivity was deleted successfully.",
+        post_activity_id: post_activity_id,
+      });
+    } else {
+      res.status(404).json({
+        message: `PostActivity with id=${post_activity_id} not found.`,
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -160,11 +190,25 @@ exports.delete = async (req, res, next) => {
 
 exports.deleteAll = async (req, res, next) => {
   try {
-    const post_activity = await PostActivity.destroy({
+    const post_activities = await PostActivity.findAll();
+
+    for (const post_activity of post_activities) {
+      if (post_activity.post_activity_image) {
+        const uploadPath = path.resolve("./") + "/src/public/images/";
+        fs.unlink(uploadPath + post_activity.post_activity_image, function (err) {
+          if (err) console.log("File not found or already deleted.");
+        });
+      }
+    }
+
+    await PostActivity.destroy({
       where: {},
       truncate: false,
     });
-    res.status(204).json(post_activity);
+
+    res.status(200).json({
+      message: "All PostActivities were deleted successfully.",
+    });
   } catch (error) {
     next(error);
   }

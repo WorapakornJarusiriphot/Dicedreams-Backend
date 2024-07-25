@@ -56,7 +56,9 @@ const authentication = require("../middleware/authentication");
  *       201:
  *         description: The user was successfully created
  *       400:
- *         description: Invalid input
+ *         description: Invalid input || Username or email already exists
+ *       500:
+ *         description: Some error occurred while creating the User.
  */
 router.post('/', userController.create);
 
@@ -207,11 +209,13 @@ router.get('/:id', [passportJWT.isLogin], userController.findOne);
  *       200:
  *         description: User was updated successfully.
  *       400:
- *         description: Invalid input
+ *         description: Invalid input || Username or email already exists
  *       401:
  *         description: Unauthorized
  *       404:
  *         description: User not found
+ *       500:
+ *         description: Some error occurred while creating the User.
  */
 router.put('/:id', [passportJWT.isLogin, authentication.isAdminOrUser], userController.update);
 
