@@ -72,6 +72,13 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], postGameControlle
  *   get:
  *     summary: Retrieve all games
  *     tags: [PostGames]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for filtering games by name or detail
+ *         example: "Werewolf"
  *     responses:
  *       200:
  *         description: A list of games
