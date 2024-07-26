@@ -69,6 +69,13 @@ router.post("/", [passportJWT.isLogin, authentication.isStore], postActivityCont
  *   get:
  *     summary: Retrieve all activity posts
  *     tags: [PostActivities]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search term for filtering activity posts by name or detail
+ *         example: "Board Game Night"
  *     responses:
  *       200:
  *         description: A list of activity posts
