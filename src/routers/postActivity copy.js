@@ -75,21 +75,7 @@ router.post("/", [passportJWT.isLogin, authentication.isStore], postActivityCont
  *         schema:
  *           type: string
  *         description: Search term for filtering activity posts by name or detail
- *         example: "Magic The Gathering&search=Board Game Night&search=Another Activity"
- *       - in: query
- *         name: search_date_activity
- *         schema:
- *           type: string
- *           format: date
- *         description: Search term for filtering activity posts by date activity
- *         example: "07/28/2024"
- *       - in: query
- *         name: search_time_activity
- *         schema:
- *           type: string
- *           format: time
- *         description: Search term for filtering activity posts by time activity
- *         example: "17:00"
+ *         example: "Board Game Night"
  *     responses:
  *       200:
  *         description: A list of activity posts

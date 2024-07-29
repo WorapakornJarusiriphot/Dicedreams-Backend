@@ -249,6 +249,42 @@ router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], chatContro
 
 /**
  * @swagger
+ * /chat/published:
+ *   get:
+ *     summary: Retrieve all published chats
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of published chats
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   message:
+ *                     type: string
+ *                   datetime_chat:
+ *                     type: string
+ *                     format: date-time
+ *                   user_id:
+ *                     type: string
+ *                   post_games_id:
+ *                     type: string
+ *                   published:
+ *                     type: boolean
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/published", [passportJWT.isLogin, authentication.isUser], chatController.findAllPublished);
+
+/**
+ * @swagger
  * /chat/user/{user_id}:
  *   get:
  *     summary: Retrieve all chats by user

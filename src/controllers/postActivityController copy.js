@@ -5,7 +5,6 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const Fuse = require('fuse.js');
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostActivity = db.post_activity;
@@ -52,71 +51,30 @@ exports.create = async (req, res, next) => {
 
 exports.findAll = async (req, res, next) => {
   try {
-    const { search, search_date_activity, search_time_activity } = req.query;
-    console.log(`Received search query for activities: ${search}`);
+    const { search } = req.query;
+    console.log(`Received search query for activities: ${search}`); // เพิ่ม log เพื่อตรวจสอบคำค้นหา
 
-    let condition = {
-      status_post: { [Op.not]: "unActive" },
-    };
+    const condition = search
+      ? {
+          [Op.or]: [
+            { name_activity: { [Op.like]: `%${search}%` } },
+            { detail_post: { [Op.like]: `%{search}%` } },
+          ],
+          status_post: { [Op.not]: "unActive" },
+        }
+      : {
+          status_post: { [Op.not]: "unActive" },
+        };
 
-    if (search_date_activity) {
-      const date = moment(search_date_activity, "MM/DD/YYYY").format("YYYY-MM-DD");
-      condition = {
-        ...condition,
-        date_activity: {
-          [Op.lte]: date,
-        },
-      };
-    }
-
-    const data = await PostActivity.findAll({
-      where: condition,
-      order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
-        ['date_activity', 'DESC'],
-        ['time_activity', 'DESC'],
-      ],
-      limit: 100,
+    const post_activity = await PostActivity.findAll({ where: condition });
+    post_activity.map((post_activity) => {
+      post_activity.post_activity_image = `${req.protocol}://${req.get(
+        "host"
+      )}/images/${post_activity.post_activity_image}`;
     });
-
-    let filteredData = data;
-
-    if (search) {
-      const searchTerms = search.split('&search=').filter(term => term);
-      const fuse = new Fuse(filteredData, {
-        keys: ['name_activity', 'detail_post'],
-        threshold: 0.3
-      });
-
-      let finalResults = [];
-      searchTerms.forEach(term => {
-        const result = fuse.search(term);
-        finalResults = [...finalResults, ...result.map(({ item }) => item)];
-      });
-
-      filteredData = [...new Set(finalResults)];
-    }
-
-    if (search_time_activity) {
-      const targetTime = moment(search_time_activity, "HH:mm").toDate();
-      filteredData = filteredData.sort((a, b) => {
-        const timeA = moment(a.time_activity, "HH:mm").toDate();
-        const timeB = moment(b.time_activity, "HH:mm").toDate();
-        return Math.abs(targetTime - timeA) - Math.abs(targetTime - timeB);
-      }).slice(0, 100); // ค้นหาข้อมูลที่ใกล้เคียงที่สุดและจำกัดผลลัพธ์ไม่เกิน 100 รายการ
-    }
-
-    filteredData.forEach((post_activity) => {
-      if (post_activity.post_activity_image) {
-        post_activity.post_activity_image = `${req.protocol}://${req.get("host")}/images/${post_activity.post_activity_image}`;
-      }
-    });
-
-    res.send(filteredData);
+    res.status(200).json(post_activity);
   } catch (error) {
-    res.status(500).send({
-      message: error.message || "Some error occurred while retrieving activities.",
-    });
+    next(error);
   }
 };
 
@@ -128,9 +86,6 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     const post_activity = await PostActivity.findAll({
       where: { store_id: storeId },
-      order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
-      ],
     });
 
     console.log(`Found posts: ${post_activity.length}`);

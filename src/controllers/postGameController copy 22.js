@@ -139,7 +139,6 @@ exports.findAllUserPosts = (req, res) => {
 
   PostGames.findAll({
     where: { users_id: userId },
-    order: [['creation_date', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.forEach((post) => {

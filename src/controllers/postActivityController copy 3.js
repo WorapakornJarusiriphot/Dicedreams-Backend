@@ -69,10 +69,18 @@ exports.findAll = async (req, res, next) => {
       };
     }
 
+    if (search_time_activity) {
+      condition = {
+        ...condition,
+        time_activity: {
+          [Op.lte]: search_time_activity,
+        },
+      };
+    }
+
     const data = await PostActivity.findAll({
       where: condition,
       order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
         ['date_activity', 'DESC'],
         ['time_activity', 'DESC'],
       ],
@@ -97,15 +105,6 @@ exports.findAll = async (req, res, next) => {
       filteredData = [...new Set(finalResults)];
     }
 
-    if (search_time_activity) {
-      const targetTime = moment(search_time_activity, "HH:mm").toDate();
-      filteredData = filteredData.sort((a, b) => {
-        const timeA = moment(a.time_activity, "HH:mm").toDate();
-        const timeB = moment(b.time_activity, "HH:mm").toDate();
-        return Math.abs(targetTime - timeA) - Math.abs(targetTime - timeB);
-      }).slice(0, 100); // ค้นหาข้อมูลที่ใกล้เคียงที่สุดและจำกัดผลลัพธ์ไม่เกิน 100 รายการ
-    }
-
     filteredData.forEach((post_activity) => {
       if (post_activity.post_activity_image) {
         post_activity.post_activity_image = `${req.protocol}://${req.get("host")}/images/${post_activity.post_activity_image}`;
@@ -128,9 +127,6 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     const post_activity = await PostActivity.findAll({
       where: { store_id: storeId },
-      order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
-      ],
     });
 
     console.log(`Found posts: ${post_activity.length}`);

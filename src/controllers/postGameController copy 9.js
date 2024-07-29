@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const Fuse = require('fuse.js');
+const stringSimilarity = require('string-similarity');
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostGames = db.post_games;
@@ -55,19 +55,32 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all games from the database.
 exports.findAll = async (req, res) => {
-  const { search, search_date_meet, search_time_meet, search_num_people } = req.query;
+  const { search, search_date_meet, search_time_meet } = req.query;
   console.log(`Received search query for games: ${search}`);
 
   let condition = {
     status_post: { [Op.not]: "unActive" },
   };
 
+  if (search) {
+    const allGames = await PostGames.findAll();
+    const similarGames = allGames.filter(game => 
+      stringSimilarity.compareTwoStrings(game.name_games, search) > 0.4 || 
+      stringSimilarity.compareTwoStrings(game.detail_post, search) > 0.4
+    );
+    const gameIds = similarGames.map(game => game.post_games_id);
+    condition = {
+      ...condition,
+      post_games_id: { [Op.in]: gameIds },
+    };
+  }
+
   if (search_date_meet) {
     const date = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
     condition = {
       ...condition,
       date_meet: {
-        [Op.lte]: date,
+        [Op.lte]: date, // หา date_meet ที่น้อยกว่าหรือเท่ากับ search_date_meet
       },
     };
   }
@@ -76,62 +89,36 @@ exports.findAll = async (req, res) => {
     condition = {
       ...condition,
       time_meet: {
-        [Op.lte]: search_time_meet,
+        [Op.lte]: search_time_meet, // หา time_meet ที่น้อยกว่าหรือเท่ากับ search_time_meet
       },
     };
   }
 
-  try {
-    const data = await PostGames.findAll({
-      where: condition,
-      order: [
-        ['date_meet', 'DESC'],
-        ['time_meet', 'DESC'],
-      ],
-      limit: 100,
-    });
-
-    let filteredData = data;
-
-    if (search_num_people) {
-      const fuse = new Fuse(data, {
-        keys: ['num_people'],
-        threshold: 0.3,
-        distance: parseInt(search_num_people)
+  PostGames.findAll({
+    where: condition,
+    order: [
+      ['date_meet', 'ASC'], // จัดเรียงวันที่จากน้อยไปมาก
+      ['time_meet', 'ASC'], // จัดเรียงเวลาจากน้อยไปมาก
+    ],
+    limit: 10, // ดึงข้อมูลที่ใกล้เคียงที่สุดเพียง 10 รายการ
+  })
+    .then((data) => {
+      data.map((post_games) => {
+        if (post_games.games_image) {
+          post_games.games_image = `${req.protocol}://${req.get(
+            "host"
+          )}/images/${post_games.games_image}`;
+        }
       });
-      const result = fuse.search(search_num_people);
-      filteredData = result.length ? result.map(({ item }) => item) : data.sort((a, b) => Math.abs(a.num_people - search_num_people) - Math.abs(b.num_people - search_num_people));
-    }
-
-    if (search) {
-      const searchTerms = search.split('&search=').filter(term => term);
-      const fuse = new Fuse(filteredData, {
-        keys: ['name_games', 'detail_post'],
-        threshold: 0.3
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving games.",
       });
-
-      let finalResults = [];
-      searchTerms.forEach(term => {
-        const result = fuse.search(term);
-        finalResults = [...finalResults, ...result.map(({ item }) => item)];
-      });
-
-      filteredData = [...new Set(finalResults)];
-    }
-
-    filteredData.forEach((post_games) => {
-      if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
-      }
     });
-
-    res.send(filteredData);
-  } catch (err) {
-    res.status(500).send({
-      message: err.message || "Some error occurred while retrieving games.",
-    });
-  }
 };
+
 
 // ดึงโพสต์ทั้งหมดของผู้ใช้เฉพาะ
 exports.findAllUserPosts = (req, res) => {
@@ -139,7 +126,6 @@ exports.findAllUserPosts = (req, res) => {
 
   PostGames.findAll({
     where: { users_id: userId },
-    order: [['creation_date', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.forEach((post) => {

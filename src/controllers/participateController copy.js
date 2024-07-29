@@ -98,9 +98,7 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all Participates from the database.
 exports.findAll = (req, res) => {
-  Participate.findAll({
-    order: [['createdAt', 'ASC']] // เรียงลำดับจากเวลาเก่าสุดไปใหม่สุด
-  })
+  Participate.findAll()
     .then((data) => {
       res.status(200).json(data);
     })
@@ -244,8 +242,7 @@ exports.findAllByPostGamesId = async (req, res, next) => {
   try {
     const data = await Participate.findAll({
       where: { post_games_id: post_games_id },
-      include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }], // เพิ่มการ include User model
-      order: [['createdAt', 'ASC']] // เรียงลำดับจากเวลาเก่าสุดไปใหม่สุด
+      include: [{ model: User, attributes: ['first_name', 'last_name', 'user_image'] }] // เพิ่มการ include User model
     });
     res.status(200).json(data);
   } catch (error) {
@@ -259,7 +256,6 @@ exports.findAllByUserId = async (req, res, next) => {
   try {
     const data = await Participate.findAll({
       where: { user_id: user_id },
-      order: [['createdAt', 'ASC']] // เรียงลำดับจากเวลาเก่าสุดไปใหม่สุด
     });
     res.status(200).json(data);
   } catch (error) {

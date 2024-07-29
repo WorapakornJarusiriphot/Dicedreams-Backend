@@ -78,7 +78,7 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], postGameControlle
  *         schema:
  *           type: string
  *         description: Search term for filtering games by name or detail
- *         example: "Werewolf&search=Coup&search=Uno&search=Magic the gethering&search=เกมเศรษฐี&search=Warhummer 40k&search=Splendor&search=Kill Team"
+ *         example: "Werewolf"
  *       - in: query
  *         name: search_date_meet
  *         schema:
@@ -93,12 +93,6 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], postGameControlle
  *           format: time
  *         description: Search term for filtering games by time meet
  *         example: "17:00"
- *       - in: query
- *         name: search_num_people
- *         schema:
- *           type: integer
- *         description: Search term for filtering games by number of people
- *         example: 75
  *     responses:
  *       200:
  *         description: A list of games

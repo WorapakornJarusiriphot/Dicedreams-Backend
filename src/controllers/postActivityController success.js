@@ -72,7 +72,6 @@ exports.findAll = async (req, res, next) => {
     const data = await PostActivity.findAll({
       where: condition,
       order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
         ['date_activity', 'DESC'],
         ['time_activity', 'DESC'],
       ],
@@ -128,9 +127,6 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     const post_activity = await PostActivity.findAll({
       where: { store_id: storeId },
-      order: [
-        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
-      ],
     });
 
     console.log(`Found posts: ${post_activity.length}`);

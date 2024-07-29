@@ -76,16 +76,14 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all games from the database.
 exports.findAll = (req, res) => {
-  Chat.findAll({
-    order: [['createdAt', 'ASC']], // เรียงลำดับจากอดีตไปใหม่ที่สุด
-  })
+  Chat.findAll()
     .then((data) => {
       res.status(200).json(data);
     })
     .catch((error) => {
       res.status(500).json({
         message:
-          error.message || "Some error occurred while retrieving chats.",
+          error.message || "Some error occurred while retrieving games.",
       });
     });
 };
@@ -208,24 +206,36 @@ exports.deleteAll = async (req, res, next) => {
   }
 };
 
-// Find all games by user
-exports.findAllByUser = (req, res) => {
-  const user_id = req.params.user_id;
-  Chat.findAll({
-    where: { user_id: user_id },
-    order: [['createdAt', 'ASC']], // เรียงลำดับจากอดีตไปใหม่ที่สุด
-  })
+// Find all published games
+exports.findAllPublished = (req, res) => {
+  Chat.findAll({ where: { published: true } })
     .then((data) => {
       res.status(200).json(data);
     })
     .catch((error) => {
       res.status(500).json({
         message:
-          error.message || "Some error occurred while retrieving chats.",
+          error.message || "Some error occurred while retrieving games.",
       });
     });
 };
 
+// Find all games by user
+exports.findAllByUser = (req, res) => {
+  const user_id = req.params.user_id;
+  Chat.findAll({ where: { user_id: user_id } })
+    .then((data) => {
+      res.status(200).json(data);
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message:
+          error.message || "Some error occurred while retrieving games.",
+      });
+    });
+};
+
+// Find all games by post_games_id
 // Find all games by post_games_id
 exports.findAllByPostGamesId = (req, res) => {
   const post_games_id = req.params.id;
@@ -238,8 +248,7 @@ exports.findAllByPostGamesId = (req, res) => {
         as: "user",
         attributes: ["first_name", "last_name", "user_image"]
       }
-    ],
-    order: [['createdAt', 'ASC']] // เรียงลำดับตาม createdAt จากเก่าที่สุดไปใหม่ที่สุด
+    ]
   })
     .then((data) => {
       res.status(200).json(data);
@@ -250,3 +259,6 @@ exports.findAllByPostGamesId = (req, res) => {
       });
     });
 };
+ 
+
+

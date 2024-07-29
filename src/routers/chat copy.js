@@ -247,46 +247,4 @@ router.delete("/", [passportJWT.isLogin, authentication.isAdminOrUser], chatCont
  */
 router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], chatController.findAllByPostGamesId);
 
-/**
- * @swagger
- * /chat/user/{user_id}:
- *   get:
- *     summary: Retrieve all chats by user
- *     tags: [Chat]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: user_id
- *         schema:
- *           type: string
- *         required: true
- *         description: The user ID
- *     responses:
- *       200:
- *         description: A list of chats by user
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                     example: "217affca-a63a-429d-abed-c3c34498a1a8"
- *                   message:
- *                     type: string
- *                   datetime_chat:
- *                     type: string
- *                     format: date-time
- *                   user_id:
- *                     type: string
- *                   post_games_id:
- *                     type: string
- *       401:
- *         description: Unauthorized
- */
-router.get("/user/:user_id", [passportJWT.isLogin, authentication.isUser], chatController.findAllByUser);
-
 module.exports = router;

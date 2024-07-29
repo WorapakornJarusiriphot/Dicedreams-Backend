@@ -6,7 +6,6 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const Fuse = require('fuse.js');
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostGames = db.post_games;
@@ -54,83 +53,50 @@ exports.create = async (req, res, next) => {
 };
 
 // Retrieve all games from the database.
-exports.findAll = async (req, res) => {
-  const { search, search_date_meet, search_time_meet, search_num_people } = req.query;
+exports.findAll = (req, res) => {
+  const { search, search_date_meet, search_time_meet } = req.query;
   console.log(`Received search query for games: ${search}`);
 
   let condition = {
     status_post: { [Op.not]: "unActive" },
   };
 
-  if (search_date_meet) {
-    const date = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
+  if (search) {
     condition = {
       ...condition,
-      date_meet: {
-        [Op.lte]: date,
-      },
+      [Op.or]: [
+        { name_games: { [Op.like]: `%${search}%` } },
+        { detail_post: { [Op.like]: `%${search}%` } },
+      ],
     };
+  }
+
+  if (search_date_meet) {
+    condition.date_meet = search_date_meet;
   }
 
   if (search_time_meet) {
-    condition = {
-      ...condition,
-      time_meet: {
-        [Op.lte]: search_time_meet,
-      },
+    condition.time_meet = {
+      [Op.eq]: search_time_meet
     };
   }
 
-  try {
-    const data = await PostGames.findAll({
-      where: condition,
-      order: [
-        ['date_meet', 'DESC'],
-        ['time_meet', 'DESC'],
-      ],
-      limit: 100,
-    });
-
-    let filteredData = data;
-
-    if (search_num_people) {
-      const fuse = new Fuse(data, {
-        keys: ['num_people'],
-        threshold: 0.3,
-        distance: parseInt(search_num_people)
+  PostGames.findAll({ where: condition })
+    .then((data) => {
+      data.map((post_games) => {
+        if (post_games.games_image) {
+          post_games.games_image = `${req.protocol}://${req.get(
+            "host"
+          )}/images/${post_games.games_image}`;
+        }
       });
-      const result = fuse.search(search_num_people);
-      filteredData = result.length ? result.map(({ item }) => item) : data.sort((a, b) => Math.abs(a.num_people - search_num_people) - Math.abs(b.num_people - search_num_people));
-    }
-
-    if (search) {
-      const searchTerms = search.split('&search=').filter(term => term);
-      const fuse = new Fuse(filteredData, {
-        keys: ['name_games', 'detail_post'],
-        threshold: 0.3
+      res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving games.",
       });
-
-      let finalResults = [];
-      searchTerms.forEach(term => {
-        const result = fuse.search(term);
-        finalResults = [...finalResults, ...result.map(({ item }) => item)];
-      });
-
-      filteredData = [...new Set(finalResults)];
-    }
-
-    filteredData.forEach((post_games) => {
-      if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
-      }
     });
-
-    res.send(filteredData);
-  } catch (err) {
-    res.status(500).send({
-      message: err.message || "Some error occurred while retrieving games.",
-    });
-  }
 };
 
 // ดึงโพสต์ทั้งหมดของผู้ใช้เฉพาะ
@@ -139,7 +105,6 @@ exports.findAllUserPosts = (req, res) => {
 
   PostGames.findAll({
     where: { users_id: userId },
-    order: [['creation_date', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.forEach((post) => {

@@ -81,6 +81,15 @@ exports.findAll = async (req, res) => {
     };
   }
 
+  if (search_num_people) {
+    condition = {
+      ...condition,
+      num_people: {
+        [Op.eq]: parseInt(search_num_people),
+      },
+    };
+  }
+
   try {
     const data = await PostGames.findAll({
       where: condition,
@@ -91,41 +100,34 @@ exports.findAll = async (req, res) => {
       limit: 100,
     });
 
-    let filteredData = data;
-
-    if (search_num_people) {
-      const fuse = new Fuse(data, {
-        keys: ['num_people'],
-        threshold: 0.3,
-        distance: parseInt(search_num_people)
-      });
-      const result = fuse.search(search_num_people);
-      filteredData = result.length ? result.map(({ item }) => item) : data.sort((a, b) => Math.abs(a.num_people - search_num_people) - Math.abs(b.num_people - search_num_people));
-    }
-
     if (search) {
-      const searchTerms = search.split('&search=').filter(term => term);
-      const fuse = new Fuse(filteredData, {
+      const searchTerms = search.split('?search=').filter(term => term);
+      const fuse = new Fuse(data, {
         keys: ['name_games', 'detail_post'],
         threshold: 0.3
       });
 
-      let finalResults = [];
+      let filteredData = data;
       searchTerms.forEach(term => {
         const result = fuse.search(term);
-        finalResults = [...finalResults, ...result.map(({ item }) => item)];
+        filteredData = filteredData.filter(item => result.map(({ item }) => item).includes(item));
       });
 
-      filteredData = [...new Set(finalResults)];
+      filteredData.forEach((post_games) => {
+        if (post_games.games_image) {
+          post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
+        }
+      });
+
+      res.send(filteredData);
+    } else {
+      data.forEach((post_games) => {
+        if (post_games.games_image) {
+          post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
+        }
+      });
+      res.send(data);
     }
-
-    filteredData.forEach((post_games) => {
-      if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
-      }
-    });
-
-    res.send(filteredData);
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving games.",
@@ -139,7 +141,6 @@ exports.findAllUserPosts = (req, res) => {
 
   PostGames.findAll({
     where: { users_id: userId },
-    order: [['creation_date', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.forEach((post) => {

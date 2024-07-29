@@ -85,7 +85,6 @@ exports.findAll = async (req, res, next) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
-      order: [['createdAt', 'DESC']] // เรียงลำดับจากใหม่ไปเก่า
     });
 
     const usersWithPhotoDomain = await users.map((user, index) => {

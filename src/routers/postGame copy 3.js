@@ -78,7 +78,7 @@ router.post("/", [passportJWT.isLogin, authentication.isUser], postGameControlle
  *         schema:
  *           type: string
  *         description: Search term for filtering games by name or detail
- *         example: "Werewolf&search=Coup&search=Uno&search=Magic the gethering&search=เกมเศรษฐี&search=Warhummer 40k&search=Splendor&search=Kill Team"
+ *         example: "Werewolf?search=Coup?search=Uno?search=Magic the gethering?search=เกมเศรษฐี?search=Warhummer 40k?search=Splendor?search=Kill Team"
  *       - in: query
  *         name: search_date_meet
  *         schema:

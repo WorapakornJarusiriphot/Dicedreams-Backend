@@ -16,7 +16,6 @@ exports.findAll = async (req, res, next) => {
     const messages = [];
     const notifications = await Notification.findAll({
       where: { user_id: req.user.users_id },
-      order: [['time', 'DESC']], // เรียงลำดับจากเวลาใหม่สุดไปเก่าสุด
     });
 
     for (let i = 0; i < notifications.length; i++) {
