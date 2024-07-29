@@ -53,21 +53,20 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all Stores from the database.
 exports.findAll = (req, res) => {
-  Store.findAll()
+  Store.findAll({
+    order: [['createdAt', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
+  })
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
-            store.store_image
-          }`;
+          store.store_image = `${req.protocol}://${req.get("host")}/images/${store.store_image}`;
         }
       });
       res.status(200).json(data);
     })
     .catch((error) => {
       res.status(500).json({
-        message:
-          error.message || "Some error occurred while retrieving Stores.",
+        message: error.message || "Some error occurred while retrieving Stores.",
       });
     });
 };
@@ -179,18 +178,20 @@ exports.deleteAll = (req, res) => {
       });
     });
 };
+
 // Retrieve all Stores by user_id
 exports.findAllByUserId = (req, res) => {
   const id = req.params.id;
   Store.findAll({
     where: { user_id: id },
+    order: [['createdAt', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
-      if (data.store_image) {
-        data.store_image = `${req.protocol}://${req.get("host")}/images/${
-          data.store_image
-        }`;
-      }
+      data.map((store) => {
+        if (store.store_image) {
+          store.store_image = `${req.protocol}://${req.get("host")}/images/${store.store_image}`;
+        }
+      });
       res.status(200).json(data);
     })
     .catch((error) => {

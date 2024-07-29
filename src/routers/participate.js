@@ -165,6 +165,54 @@ router.get("/post/:id", [passportJWT.isLogin, authentication.isUser], participat
 
 /**
  * @swagger
+ * /participate/user/{userId}:
+ *   get:
+ *     summary: Retrieve all participates by user_id
+ *     tags: [Participates]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The user ID
+ *         example: "217affca-a63a-429d-abed-c3c34498a1a8"
+ *     responses:
+ *       200:
+ *         description: A list of participates
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   participant_id:
+ *                     type: string
+ *                   participant_apply_datetime:
+ *                     type: string
+ *                     format: date-time
+ *                   participant_status:
+ *                     type: string
+ *                   user_id:
+ *                     type: string
+ *                   post_games_id:
+ *                     type: string
+ *                   createdAt:
+ *                     type: string
+ *                     format: date-time
+ *                   updatedAt:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/user/:userId", [passportJWT.isLogin, authentication.isUser], participateController.findAllByUserId);
+
+/**
+ * @swagger
  * /participate/{id}:
  *   put:
  *     summary: Update a participate with id
