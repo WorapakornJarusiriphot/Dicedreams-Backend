@@ -41,7 +41,6 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: false,
         unique: true,
       },
-
       phone_number: {
         type: DataTypes.STRING(20),
         allowNull: true,
@@ -54,6 +53,10 @@ module.exports = (sequelize, Sequelize) => {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       freezeTableName: true,
@@ -64,7 +67,7 @@ module.exports = (sequelize, Sequelize) => {
   sequelize
     .sync()
     .then(() => console.log("Table `users` has been created successfully."))
-    .catch((error) => console.error("or table already exist users"));
+    .catch((error) => console.error("Error creating table `users`:", error));
 
   return User;
 };

@@ -21,10 +21,10 @@ const routerNotification = require("./routers/notification");
 // Import Swagger configuration
 const { swaggerUi, specs } = require('./configs/swaggerConfig');
 
-db.sequelize.sync();
-// db.sequelize.sync({ force: true }).then(() => {
-//     console.log("Drop and resync DB");
-//   });
+// ใช้การ sync แบบ alter เพื่ออัพเดต schema ของตารางที่มีอยู่แล้ว
+db.sequelize.sync({ alter: true })
+  .then(() => console.log("Tables have been updated successfully."))
+  .catch((error) => console.error("Error updating tables:", error));
 
 const app = express();
 
