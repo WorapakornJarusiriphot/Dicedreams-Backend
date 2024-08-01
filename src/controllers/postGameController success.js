@@ -193,12 +193,8 @@ exports.update = async (req, res, next) => {
       }
 
       req.body.games_image = await saveImageToDisk(req.body.games_image);
-    } else {
-      // แก้ไขให้เก็บเฉพาะชื่อไฟล์ ไม่ใช่ URL ทั้งหมด
-      req.body.games_image = req.body.games_image.replace(`${req.protocol}://${req.get("host")}/images/`, "");
     }
   }
-
   req.body.date_meet = moment(req.body.date_meet, "MM-DD-YYYY");
 
   PostGames.update(req.body, {
