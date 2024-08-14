@@ -236,7 +236,7 @@ exports.findAllByPostGamesId = (req, res) => {
       {
         model: User,
         as: "user",
-        attributes: ["first_name", "last_name", "user_image" , "users_id" , "role" , "birthday" , "username" , "email" , "phone_number" , "gender" , "bio" ]
+        attributes: ["first_name", "last_name", "user_image"]
       }
     ],
     order: [['createdAt', 'ASC']] // เรียงลำดับตาม createdAt จากเก่าที่สุดไปใหม่ที่สุด
