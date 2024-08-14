@@ -96,15 +96,9 @@ exports.create = async (req, res, next) => {
   }
 };
 
-// Retrieve all Participates from the database where participant_status is not 'unActive'.
+// Retrieve all Participates from the database.
 exports.findAll = (req, res) => {
   Participate.findAll({
-    where: {
-      participant_status: {
-        [db.Sequelize.Op.not]: 'unActive' // กรองออกเฉพาะที่สถานะไม่ใช่ 'unActive'
-      }
-    },
-    include: [{ model: User, as: 'user' }], // ตัวอย่างการรวมข้อมูลผู้ใช้ถ้าต้องการ
     order: [['createdAt', 'ASC']] // เรียงลำดับจากเวลาเก่าสุดไปใหม่สุด
   })
     .then((data) => {
