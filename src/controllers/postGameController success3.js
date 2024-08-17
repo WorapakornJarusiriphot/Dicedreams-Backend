@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const Fuse = require("fuse.js");
+const Fuse = require('fuse.js');
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostGames = db.post_games;
@@ -47,9 +47,7 @@ exports.create = async (req, res, next) => {
 
     // Save game in the database async
     const data = await PostGames.create(game);
-    res
-      .status(201)
-      .json({ message: "Game was created successfully.", data: data });
+    res.status(201).json({ message: "Game was created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -57,8 +55,7 @@ exports.create = async (req, res, next) => {
 
 // Retrieve all games from the database.
 exports.findAll = async (req, res) => {
-  const { search, search_date_meet, search_time_meet, search_num_people } =
-    req.query;
+  const { search, search_date_meet, search_time_meet, search_num_people } = req.query;
   console.log(`Received search query for games: ${search}`);
 
   let condition = {
@@ -88,8 +85,8 @@ exports.findAll = async (req, res) => {
     const data = await PostGames.findAll({
       where: condition,
       order: [
-        ["date_meet", "DESC"],
-        ["time_meet", "DESC"],
+        ['date_meet', 'DESC'],
+        ['time_meet', 'DESC'],
       ],
       limit: 100,
     });
@@ -98,29 +95,23 @@ exports.findAll = async (req, res) => {
 
     if (search_num_people) {
       const fuse = new Fuse(data, {
-        keys: ["num_people"],
+        keys: ['num_people'],
         threshold: 0.3,
-        distance: parseInt(search_num_people),
+        distance: parseInt(search_num_people)
       });
       const result = fuse.search(search_num_people);
-      filteredData = result.length
-        ? result.map(({ item }) => item)
-        : data.sort(
-            (a, b) =>
-              Math.abs(a.num_people - search_num_people) -
-              Math.abs(b.num_people - search_num_people)
-          );
+      filteredData = result.length ? result.map(({ item }) => item) : data.sort((a, b) => Math.abs(a.num_people - search_num_people) - Math.abs(b.num_people - search_num_people));
     }
 
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term);
+      const searchTerms = search.split('&search=').filter(term => term);
       const fuse = new Fuse(filteredData, {
-        keys: ["name_games", "detail_post"],
-        threshold: 0.3,
+        keys: ['name_games', 'detail_post'],
+        threshold: 0.3
       });
 
       let finalResults = [];
-      searchTerms.forEach((term) => {
+      searchTerms.forEach(term => {
         const result = fuse.search(term);
         finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
@@ -130,9 +121,7 @@ exports.findAll = async (req, res) => {
 
     filteredData.forEach((post_games) => {
       if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${
-          post_games.games_image
-        }`;
+        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${post_games.games_image}`;
       }
     });
 
@@ -145,8 +134,7 @@ exports.findAll = async (req, res) => {
 };
 
 exports.searchActiveGames = async (req, res) => {
-  const { search, search_date_meet, search_time_meet, search_num_people } =
-    req.query;
+  const { search, search_date_meet, search_time_meet, search_num_people } = req.query;
 
   let condition = {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
@@ -166,65 +154,59 @@ exports.searchActiveGames = async (req, res) => {
   }
 
   try {
-    let data = await PostGames.findAll({
+    const data = await PostGames.findAll({
       where: condition,
       order: [
-        ["date_meet", "ASC"],
-        ["time_meet", "ASC"],
+        ['date_meet', 'ASC'], 
+        ['time_meet', 'ASC'],
       ],
     });
 
+    let filteredData = data;
+
     // การกรองตามจำนวนคนที่ต้องการ
     if (search_num_people) {
-      const fuse = new Fuse(data, {
-        keys: ["num_people"],
+      const fuse = new Fuse(filteredData, {
+        keys: ['num_people'],
         threshold: 0.3,
-        distance: parseInt(search_num_people),
+        distance: parseInt(search_num_people)
       });
       const result = fuse.search(search_num_people);
-      data = result.length
-        ? result.map(({ item }) => item)
-        : data.sort(
-            (a, b) =>
-              Math.abs(a.num_people - search_num_people) -
-              Math.abs(b.num_people - search_num_people)
-          );
+      filteredData = result.length ? result.map(({ item }) => item) : data;
     }
 
     // การกรองตามคำค้นหา
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term);
-      const fuse = new Fuse(data, {
-        keys: ["name_games", "detail_post"],
-        threshold: 0.3,
+      const searchTerms = search.split('&search=').filter(term => term);
+      const fuse = new Fuse(filteredData, {
+        keys: ['name_games', 'detail_post'],
+        threshold: 0.3
       });
 
       let finalResults = [];
-      searchTerms.forEach((term) => {
+      searchTerms.forEach(term => {
         const result = fuse.search(term);
         finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
 
-      data = [...new Set(finalResults)];
+      filteredData = [...new Set(finalResults)];
     }
 
     // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
     const currentTime = moment();
-    data = data.filter((post) => {
+    filteredData = filteredData.filter((post) => {
       const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
-      const isPostFull = post.participants >= post.num_people;
-      return postDateTime.isAfter(currentTime) && !isPostFull;
+      const isPostFull = post.participants >= post.num_people; // ตรวจสอบว่าคนเต็มหรือไม่
+      return postDateTime.isAfter(currentTime) && !isPostFull; // แสดงเฉพาะโพสต์ที่ยังไม่เต็มและยังไม่หมดเวลา
     });
 
-    data.forEach((post) => {
+    filteredData.forEach((post) => {
       if (post.games_image) {
-        post.games_image = `${req.protocol}://${req.get("host")}/images/${
-          post.games_image
-        }`;
+        post.games_image = `${req.protocol}://${req.get("host")}/images/${post.games_image}`;
       }
     });
 
-    res.send(data);
+    res.send(filteredData);
   } catch (err) {
     res.status(500).send({
       message: err.message || "Some error occurred while retrieving games.",
@@ -232,20 +214,20 @@ exports.searchActiveGames = async (req, res) => {
   }
 };
 
+
+
 // ดึงโพสต์ทั้งหมดของผู้ใช้เฉพาะ
 exports.findAllUserPosts = (req, res) => {
   const userId = req.params.userId;
 
   PostGames.findAll({
     where: { users_id: userId },
-    order: [["creation_date", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
+    order: [['creation_date', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.forEach((post) => {
         if (post.games_image) {
-          post.games_image = `${req.protocol}://${req.get("host")}/images/${
-            post.games_image
-          }`;
+          post.games_image = `${req.protocol}://${req.get("host")}/images/${post.games_image}`;
         }
       });
       res.send(data);
@@ -296,10 +278,7 @@ exports.update = async (req, res, next) => {
       req.body.games_image = await saveImageToDisk(req.body.games_image);
     } else {
       // แก้ไขให้เก็บเฉพาะชื่อไฟล์ ไม่ใช่ URL ทั้งหมด
-      req.body.games_image = req.body.games_image.replace(
-        `${req.protocol}://${req.get("host")}/images/`,
-        ""
-      );
+      req.body.games_image = req.body.games_image.replace(`${req.protocol}://${req.get("host")}/images/`, "");
     }
   }
 
