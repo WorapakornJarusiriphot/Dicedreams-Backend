@@ -153,27 +153,23 @@ router.get("/", postGameController.findAll);
  *         schema:
  *           type: string
  *         description: Search term for filtering games by name or detail
- *         example: "Werewolf&search=Coup&search=Uno&search=Magic the gethering&search=เกมเศรษฐี&search=Warhummer 40k&search=Splendor&search=Kill Team"
  *       - in: query
  *         name: search_date_meet
  *         schema:
  *           type: string
  *           format: date
  *         description: Filter games by meeting date
- *         example: "07/28/2024"
  *       - in: query
  *         name: search_time_meet
  *         schema:
  *           type: string
  *           format: time
  *         description: Filter games by meeting time
- *         example: "17:00"
  *       - in: query
  *         name: search_num_people
  *         schema:
  *           type: integer
  *         description: Filter games by the number of participants
- *         example: 75
  *     responses:
  *       200:
  *         description: A list of filtered game posts

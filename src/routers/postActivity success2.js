@@ -142,21 +142,18 @@ router.get("/", postActivityController.findAll);
  *         schema:
  *           type: string
  *         description: Search term for filtering activities by name or detail
- *         example: "Magic The Gathering&search=Board Game Night&search=Another Activity"
  *       - in: query
  *         name: search_date_activity
  *         schema:
  *           type: string
  *           format: date
  *         description: Filter activities by activity date
- *         example: "07/28/2024"
  *       - in: query
  *         name: search_time_activity
  *         schema:
  *           type: string
  *           format: time
  *         description: Filter activities by activity time
- *         example: "17:00"
  *     responses:
  *       200:
  *         description: A list of filtered activity posts
