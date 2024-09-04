@@ -5,7 +5,7 @@ const { Op } = require("sequelize");
 const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
-const Fuse = require("fuse.js");
+const Fuse = require('fuse.js');
 const writeFileAsync = promisify(fs.writeFile);
 
 const PostActivity = db.post_activity;
@@ -60,9 +60,7 @@ exports.findAll = async (req, res, next) => {
     };
 
     if (search_date_activity) {
-      const date = moment(search_date_activity, "MM/DD/YYYY").format(
-        "YYYY-MM-DD"
-      );
+      const date = moment(search_date_activity, "MM/DD/YYYY").format("YYYY-MM-DD");
       condition = {
         ...condition,
         date_activity: {
@@ -74,9 +72,9 @@ exports.findAll = async (req, res, next) => {
     const data = await PostActivity.findAll({
       where: condition,
       order: [
-        ["creation_date", "DESC"], // เรียงลำดับจากเก่าสุดไปใหม่สุด
-        ["date_activity", "DESC"],
-        ["time_activity", "DESC"],
+        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
+        ['date_activity', 'DESC'],
+        ['time_activity', 'DESC'],
       ],
       limit: 100,
     });
@@ -84,14 +82,14 @@ exports.findAll = async (req, res, next) => {
     let filteredData = data;
 
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term);
+      const searchTerms = search.split('&search=').filter(term => term);
       const fuse = new Fuse(filteredData, {
-        keys: ["name_activity", "detail_post"],
-        threshold: 0.3,
+        keys: ['name_activity', 'detail_post'],
+        threshold: 0.3
       });
 
       let finalResults = [];
-      searchTerms.forEach((term) => {
+      searchTerms.forEach(term => {
         const result = fuse.search(term);
         finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
@@ -101,103 +99,23 @@ exports.findAll = async (req, res, next) => {
 
     if (search_time_activity) {
       const targetTime = moment(search_time_activity, "HH:mm").toDate();
-      filteredData = filteredData
-        .sort((a, b) => {
-          const timeA = moment(a.time_activity, "HH:mm").toDate();
-          const timeB = moment(b.time_activity, "HH:mm").toDate();
-          return Math.abs(targetTime - timeA) - Math.abs(targetTime - timeB);
-        })
-        .slice(0, 100); // ค้นหาข้อมูลที่ใกล้เคียงที่สุดและจำกัดผลลัพธ์ไม่เกิน 100 รายการ
+      filteredData = filteredData.sort((a, b) => {
+        const timeA = moment(a.time_activity, "HH:mm").toDate();
+        const timeB = moment(b.time_activity, "HH:mm").toDate();
+        return Math.abs(targetTime - timeA) - Math.abs(targetTime - timeB);
+      }).slice(0, 100); // ค้นหาข้อมูลที่ใกล้เคียงที่สุดและจำกัดผลลัพธ์ไม่เกิน 100 รายการ
     }
 
     filteredData.forEach((post_activity) => {
       if (post_activity.post_activity_image) {
-        post_activity.post_activity_image = `${req.protocol}://${req.get(
-          "host"
-        )}/images/${post_activity.post_activity_image}`;
+        post_activity.post_activity_image = `${req.protocol}://${req.get("host")}/images/${post_activity.post_activity_image}`;
       }
     });
 
     res.send(filteredData);
   } catch (error) {
     res.status(500).send({
-      message:
-        error.message || "Some error occurred while retrieving activities.",
-    });
-  }
-};
-
-exports.searchActiveActivities = async (req, res) => {
-  const { search, search_date_activity, search_time_activity } = req.query;
-
-  let condition = {
-    status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
-  };
-
-  if (search_date_activity) {
-    const date = moment(search_date_activity, "MM/DD/YYYY").format(
-      "YYYY-MM-DD"
-    );
-    condition.date_activity = {
-      [Op.gte]: date,
-    };
-  }
-
-  if (search_time_activity) {
-    condition.time_activity = {
-      [Op.gte]: search_time_activity,
-    };
-  }
-
-  try {
-    let data = await PostActivity.findAll({
-      where: condition,
-      order: [
-        ["date_activity", "ASC"],
-        ["time_activity", "ASC"],
-      ],
-    });
-
-    // การกรองตามคำค้นหา
-    if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term);
-      const fuse = new Fuse(data, {
-        keys: ["name_activity", "detail_post"],
-        threshold: 0.3,
-      });
-
-      let finalResults = [];
-      searchTerms.forEach((term) => {
-        const result = fuse.search(term);
-        finalResults = [...finalResults, ...result.map(({ item }) => item)];
-      });
-
-      data = [...new Set(finalResults)];
-    }
-
-    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
-    const currentTime = moment();
-    data = data.filter((post) => {
-      const postDateTime = moment(
-        `${post.date_activity} ${post.time_activity}`
-      );
-      const isPostFull = post.participants >= post.num_people;
-      return postDateTime.isAfter(currentTime) && !isPostFull;
-    });
-
-    data.forEach((post) => {
-      if (post.post_activity_image) {
-        post.post_activity_image = `${req.protocol}://${req.get(
-          "host"
-        )}/images/${post.post_activity_image}`;
-      }
-    });
-
-    res.send(data);
-  } catch (err) {
-    res.status(500).send({
-      message:
-        err.message || "Some error occurred while retrieving activities.",
+      message: error.message || "Some error occurred while retrieving activities.",
     });
   }
 };
@@ -211,7 +129,7 @@ exports.findAllStorePosts = async (req, res, next) => {
     const post_activity = await PostActivity.findAll({
       where: { store_id: storeId },
       order: [
-        ["creation_date", "DESC"], // เรียงลำดับจากเก่าสุดไปใหม่สุด
+        ['creation_date', 'DESC'],  // เรียงลำดับจากเก่าสุดไปใหม่สุด
       ],
     });
 
@@ -231,6 +149,7 @@ exports.findAllStorePosts = async (req, res, next) => {
     next(error);
   }
 };
+
 
 exports.findOne = async (req, res, next) => {
   try {
@@ -321,12 +240,9 @@ exports.deleteAll = async (req, res, next) => {
     for (const post_activity of post_activities) {
       if (post_activity.post_activity_image) {
         const uploadPath = path.resolve("./") + "/src/public/images/";
-        fs.unlink(
-          uploadPath + post_activity.post_activity_image,
-          function (err) {
-            if (err) console.log("File not found or already deleted.");
-          }
-        );
+        fs.unlink(uploadPath + post_activity.post_activity_image, function (err) {
+          if (err) console.log("File not found or already deleted.");
+        });
       }
     }
 
