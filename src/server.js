@@ -92,11 +92,14 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 8080;
 const DOMAIN = process.env.DOMAIN;
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-  console.log(`Visit the application at: ${DOMAIN}`);
-  console.log(`API documentation is available at: ${DOMAIN}/api-docs`);
-  console.log(`Swagger JSON is available at: ${DOMAIN}/swagger.json`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+    console.log(`Visit the application at: ${DOMAIN}`);
+    console.log(`API documentation is available at: ${DOMAIN}/api-docs`);
+    console.log(`Swagger JSON is available at: ${DOMAIN}/swagger.json`);
+  });
+}
 
 // console.log('Using mysql2 version:', require('mysql2').version);
+module.exports = app; // ตรวจสอบว่ามีการ export ถูกต้องหรือไม่

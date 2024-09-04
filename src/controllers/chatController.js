@@ -68,7 +68,7 @@ exports.create = async (req, res, next) => {
 
     res
       .status(201)
-      .json({ message: "Game was created successfully.", data: data });
+      .json({ message: "Chat created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -161,7 +161,7 @@ exports.update = async (req, res, next) => {
             .emit("notifications_" + chat.dataValues.user_id, messages);
 
       res.status(200).json({
-        message: "Game was updated successfully.",
+        message: "Chat updated successfully.",
       });
     } else {
       res.status(400).json({
@@ -183,7 +183,7 @@ exports.delete = async (req, res, next) => {
     });
     if (data == 1) {
       res.status(200).json({
-        message: "Game was deleted successfully!",
+        message: "Chat deleted successfully!",
       });
     } else {
       res.status(400).json({
