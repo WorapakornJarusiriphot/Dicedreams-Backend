@@ -141,7 +141,7 @@ exports.searchActiveActivities = async (req, res) => {
       "YYYY-MM-DD"
     );
     condition.date_activity = {
-      [Op.lte]: targetDate, // เปลี่ยนเป็น <= เพื่อให้แสดงโพสต์ที่มีวันที่ใกล้เคียงที่สุด
+      [Op.gte]: targetDate,
     };
   }
 
@@ -150,7 +150,7 @@ exports.searchActiveActivities = async (req, res) => {
   if (search_time_activity) {
     targetTime = search_time_activity;
     condition.time_activity = {
-      [Op.lte]: search_time_activity, // เปลี่ยนเป็น <= เพื่อให้แสดงเวลาที่ใกล้เคียงที่สุด
+      [Op.gte]: search_time_activity,
     };
   }
 
@@ -165,11 +165,11 @@ exports.searchActiveActivities = async (req, res) => {
 
     // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term);
+      const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
       const fuse = new Fuse(data, {
-        keys: ["name_activity", "detail_post"],
-        threshold: 0.5,
-        includeScore: true,
+        keys: ["name_activity", "detail_post"], // ค้นหาใน name_activity และ detail_post
+        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้
+        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
       });
 
       let finalResults = [];
@@ -178,12 +178,14 @@ exports.searchActiveActivities = async (req, res) => {
         finalResults = [...finalResults, ...result];
       });
 
+      // รวมผลลัพธ์และเรียงลำดับตามคะแนนความใกล้เคียง (จากมากไปน้อย)
       finalResults.sort((a, b) => a.score - b.score);
 
+      // เอาเฉพาะโพสต์ออกมา
       data = finalResults.map(({ item }) => item);
     }
 
-    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือเต็มแล้ว
+    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
     const currentTime = moment();
     data = data.filter((post) => {
       const postDateTime = moment(
@@ -193,7 +195,7 @@ exports.searchActiveActivities = async (req, res) => {
       return postDateTime.isAfter(currentTime) && !isPostFull;
     });
 
-    // การจัดเรียงตามวันที่
+    // จัดเรียงตามความใกล้เคียงของวันที่และเวลา
     if (targetDate) {
       data.sort((a, b) => {
         const diffA = Math.abs(
@@ -206,7 +208,6 @@ exports.searchActiveActivities = async (req, res) => {
       });
     }
 
-    // การจัดเรียงตามเวลา
     if (targetTime) {
       data.sort((a, b) => {
         const timeDiffA = Math.abs(
