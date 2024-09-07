@@ -134,21 +134,16 @@ exports.searchActiveActivities = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
-  // การกรองตามวันที่
-  let targetDate = null;
   if (search_date_activity) {
-    targetDate = moment(search_date_activity, "MM/DD/YYYY").format(
+    const date = moment(search_date_activity, "MM/DD/YYYY").format(
       "YYYY-MM-DD"
     );
     condition.date_activity = {
-      [Op.gte]: targetDate,
+      [Op.gte]: date,
     };
   }
 
-  // การกรองตามเวลา
-  let targetTime = null;
   if (search_time_activity) {
-    targetTime = search_time_activity;
     condition.time_activity = {
       [Op.gte]: search_time_activity,
     };
@@ -163,26 +158,21 @@ exports.searchActiveActivities = async (req, res) => {
       ],
     });
 
-    // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
+    // การกรองตามคำค้นหา
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
+      const searchTerms = search.split("&search=").filter((term) => term);
       const fuse = new Fuse(data, {
-        keys: ["name_activity", "detail_post"], // ค้นหาใน name_activity และ detail_post
-        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้
-        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
+        keys: ["name_activity", "detail_post"],
+        threshold: 0.3,
       });
 
       let finalResults = [];
       searchTerms.forEach((term) => {
         const result = fuse.search(term);
-        finalResults = [...finalResults, ...result];
+        finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
 
-      // รวมผลลัพธ์และเรียงลำดับตามคะแนนความใกล้เคียง (จากมากไปน้อย)
-      finalResults.sort((a, b) => a.score - b.score);
-
-      // เอาเฉพาะโพสต์ออกมา
-      data = finalResults.map(({ item }) => item);
+      data = [...new Set(finalResults)];
     }
 
     // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
@@ -195,32 +185,6 @@ exports.searchActiveActivities = async (req, res) => {
       return postDateTime.isAfter(currentTime) && !isPostFull;
     });
 
-    // จัดเรียงตามความใกล้เคียงของวันที่และเวลา
-    if (targetDate) {
-      data.sort((a, b) => {
-        const diffA = Math.abs(
-          moment(a.date_activity).diff(targetDate, "days")
-        );
-        const diffB = Math.abs(
-          moment(b.date_activity).diff(targetDate, "days")
-        );
-        return diffA - diffB;
-      });
-    }
-
-    if (targetTime) {
-      data.sort((a, b) => {
-        const timeDiffA = Math.abs(
-          moment(a.time_activity, "HH:mm").diff(targetTime, "minutes")
-        );
-        const timeDiffB = Math.abs(
-          moment(b.time_activity, "HH:mm").diff(targetTime, "minutes")
-        );
-        return timeDiffA - timeDiffB;
-      });
-    }
-
-    // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.post_activity_image) {
         post.post_activity_image = `${req.protocol}://${req.get(

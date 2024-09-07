@@ -152,19 +152,14 @@ exports.searchActiveGames = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
-  // การกรองตามวันที่
-  let targetDate = null;
   if (search_date_meet) {
-    targetDate = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
+    const date = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
     condition.date_meet = {
-      [Op.gte]: targetDate,
+      [Op.gte]: date,
     };
   }
 
-  // การกรองตามเวลา
-  let targetTime = null;
   if (search_time_meet) {
-    targetTime = search_time_meet;
     condition.time_meet = {
       [Op.gte]: search_time_meet,
     };
@@ -181,31 +176,36 @@ exports.searchActiveGames = async (req, res) => {
 
     // การกรองตามจำนวนคนที่ต้องการ
     if (search_num_people) {
-      data = data.filter(
-        (post) => post.num_people >= parseInt(search_num_people)
-      );
+      const fuse = new Fuse(data, {
+        keys: ["num_people"],
+        threshold: 0.3,
+        distance: parseInt(search_num_people),
+      });
+      const result = fuse.search(search_num_people);
+      data = result.length
+        ? result.map(({ item }) => item)
+        : data.sort(
+            (a, b) =>
+              Math.abs(a.num_people - search_num_people) -
+              Math.abs(b.num_people - search_num_people)
+          );
     }
 
-    // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
+    // การกรองตามคำค้นหา
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
+      const searchTerms = search.split("&search=").filter((term) => term);
       const fuse = new Fuse(data, {
-        keys: ["name_games", "detail_post"], // ค้นหาใน name_games และ detail_post
-        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้ (0 = ตรงเป๊ะ, 1 = ไม่แม่นยำเลย)
-        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
+        keys: ["name_games", "detail_post"],
+        threshold: 0.3,
       });
 
       let finalResults = [];
       searchTerms.forEach((term) => {
         const result = fuse.search(term);
-        finalResults = [...finalResults, ...result];
+        finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
 
-      // รวมผลลัพธ์และเรียงลำดับตามคะแนน (จากใกล้เคียงมากที่สุดไปน้อยที่สุด)
-      finalResults.sort((a, b) => a.score - b.score);
-
-      // เอาเฉพาะโพสต์ออกมา
-      data = finalResults.map(({ item }) => item);
+      data = [...new Set(finalResults)];
     }
 
     // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
@@ -216,37 +216,6 @@ exports.searchActiveGames = async (req, res) => {
       return postDateTime.isAfter(currentTime) && !isPostFull;
     });
 
-    // จัดเรียงตามความใกล้เคียงของวันที่และเวลา
-    if (targetDate) {
-      data.sort((a, b) => {
-        const diffA = Math.abs(moment(a.date_meet).diff(targetDate, "days"));
-        const diffB = Math.abs(moment(b.date_meet).diff(targetDate, "days"));
-        return diffA - diffB;
-      });
-    }
-
-    if (targetTime) {
-      data.sort((a, b) => {
-        const timeDiffA = Math.abs(
-          moment(a.time_meet, "HH:mm").diff(targetTime, "minutes")
-        );
-        const timeDiffB = Math.abs(
-          moment(b.time_meet, "HH:mm").diff(targetTime, "minutes")
-        );
-        return timeDiffA - timeDiffB;
-      });
-    }
-
-    // จัดเรียงตามจำนวนคนที่ต้องการ
-    if (search_num_people) {
-      data.sort((a, b) => {
-        const peopleDiffA = Math.abs(a.num_people - search_num_people);
-        const peopleDiffB = Math.abs(b.num_people - search_num_people);
-        return peopleDiffA - peopleDiffB;
-      });
-    }
-
-    // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.games_image) {
         post.games_image = `${req.protocol}://${req.get("host")}/images/${
