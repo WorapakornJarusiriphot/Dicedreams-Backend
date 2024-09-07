@@ -134,27 +134,8 @@ exports.searchActiveActivities = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
-  // การกรองตามวันที่
-  let targetDate = null;
-  if (search_date_activity) {
-    targetDate = moment(search_date_activity, "MM/DD/YYYY").format(
-      "YYYY-MM-DD"
-    );
-    condition.date_activity = {
-      [Op.lte]: targetDate, // เปลี่ยนเป็น <= เพื่อให้แสดงโพสต์ที่มีวันที่ใกล้เคียงที่สุด
-    };
-  }
-
-  // การกรองตามเวลา
-  let targetTime = null;
-  if (search_time_activity) {
-    targetTime = search_time_activity;
-    condition.time_activity = {
-      [Op.lte]: search_time_activity, // เปลี่ยนเป็น <= เพื่อให้แสดงเวลาที่ใกล้เคียงที่สุด
-    };
-  }
-
   try {
+    // ดึงข้อมูลทั้งหมดจากฐานข้อมูลที่มีสถานะ active
     let data = await PostActivity.findAll({
       where: condition,
       order: [
@@ -163,13 +144,53 @@ exports.searchActiveActivities = async (req, res) => {
       ],
     });
 
+    const currentTime = moment();
+
+    // กรองโพสต์ที่วันและเวลายังไม่ผ่านไป
+    data = data.filter((post) => {
+      const postDateTime = moment(
+        `${post.date_activity} ${post.time_activity}`
+      );
+      return postDateTime.isAfter(currentTime); // โชว์เฉพาะโพสต์ที่ยังไม่ผ่านเวลานัด
+    });
+
+    // การกรองตามวันที่ใกล้เคียง
+    if (search_date_activity) {
+      const targetDate = moment(search_date_activity, "MM/DD/YYYY");
+
+      data = data.map((post) => {
+        const diffInDays = Math.abs(
+          moment(post.date_activity).diff(targetDate, "days")
+        );
+        return { ...post.toJSON(), dateDiff: diffInDays }; // เพิ่มความต่างของวันที่เข้าไปในแต่ละโพสต์
+      });
+
+      // เรียงโพสต์ตามวันที่ที่ใกล้เคียงกับที่ค้นหามากที่สุด
+      data.sort((a, b) => a.dateDiff - b.dateDiff);
+    }
+
+    // การกรองตามเวลาใกล้เคียง
+    if (search_time_activity) {
+      const targetTime = moment(search_time_activity, "HH:mm");
+
+      data = data.map((post) => {
+        const timeDiff = Math.abs(
+          moment(post.time_activity, "HH:mm").diff(targetTime, "minutes")
+        );
+        return { ...post, timeDiff }; // เพิ่มความต่างของเวลาเข้าไปในแต่ละโพสต์
+      });
+
+      // เรียงโพสต์ตามเวลาที่ใกล้เคียงกับที่ค้นหามากที่สุด
+      data.sort((a, b) => a.timeDiff - b.timeDiff);
+    }
+
     // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
     if (search) {
       const searchTerms = search.split("&search=").filter((term) => term);
       const fuse = new Fuse(data, {
-        keys: ["name_activity", "detail_post"],
+        keys: ["name_activity", "detail_post"], // ค้นหาใน name_activity และ detail_post
         threshold: 0.5,
-        includeScore: true,
+        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
       });
 
       let finalResults = [];
@@ -180,43 +201,8 @@ exports.searchActiveActivities = async (req, res) => {
 
       finalResults.sort((a, b) => a.score - b.score);
 
+      // เอาเฉพาะโพสต์ออกมา
       data = finalResults.map(({ item }) => item);
-    }
-
-    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือเต็มแล้ว
-    const currentTime = moment();
-    data = data.filter((post) => {
-      const postDateTime = moment(
-        `${post.date_activity} ${post.time_activity}`
-      );
-      const isPostFull = post.participants >= post.num_people;
-      return postDateTime.isAfter(currentTime) && !isPostFull;
-    });
-
-    // การจัดเรียงตามวันที่
-    if (targetDate) {
-      data.sort((a, b) => {
-        const diffA = Math.abs(
-          moment(a.date_activity).diff(targetDate, "days")
-        );
-        const diffB = Math.abs(
-          moment(b.date_activity).diff(targetDate, "days")
-        );
-        return diffA - diffB;
-      });
-    }
-
-    // การจัดเรียงตามเวลา
-    if (targetTime) {
-      data.sort((a, b) => {
-        const timeDiffA = Math.abs(
-          moment(a.time_activity, "HH:mm").diff(targetTime, "minutes")
-        );
-        const timeDiffB = Math.abs(
-          moment(b.time_activity, "HH:mm").diff(targetTime, "minutes")
-        );
-        return timeDiffA - timeDiffB;
-      });
     }
 
     // การแก้ไข URL ของรูปภาพ

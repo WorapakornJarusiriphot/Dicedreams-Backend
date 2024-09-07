@@ -161,6 +161,14 @@ exports.searchActiveGames = async (req, res) => {
       ],
     });
 
+    const currentTime = moment();
+
+    // กรองโพสต์ที่วันที่และเวลานัดเล่นยังไม่ผ่านไป
+    data = data.filter((post) => {
+      const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
+      return postDateTime.isAfter(currentTime); // โชว์เฉพาะโพสต์ที่ยังไม่ผ่านเวลานัด
+    });
+
     // คำนวณความใกล้เคียงตามวันที่
     if (search_date_meet) {
       const targetDate = moment(search_date_meet, "MM/DD/YYYY").format(
@@ -211,7 +219,7 @@ exports.searchActiveGames = async (req, res) => {
       const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
       const fuse = new Fuse(data, {
         keys: ["name_games", "detail_post"], // ค้นหาใน name_games และ detail_post
-        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้ (0 = ตรงเป๊ะ, 1 = ไม่แม่นยำเลย)
+        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้
         includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
       });
 
@@ -221,7 +229,7 @@ exports.searchActiveGames = async (req, res) => {
         finalResults = [...finalResults, ...result];
       });
 
-      // รวมผลลัพธ์และเรียงลำดับตามคะแนน (จากใกล้เคียงมากที่สุดไปน้อยที่สุด)
+      // รวมผลลัพธ์และเรียงลำดับตามคะแนนความใกล้เคียง
       finalResults.sort((a, b) => a.score - b.score);
 
       // เอาเฉพาะโพสต์ออกมา
