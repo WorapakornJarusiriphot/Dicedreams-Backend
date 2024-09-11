@@ -48,60 +48,6 @@ router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
 
 /**
  * @swagger
- * /notification/user:
- *   get:
- *     summary: Retrieve notifications for a specific user with pagination
- *     tags: [Notifications]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Number of notifications per page
- *     responses:
- *       200:
- *         description: A list of notifications with pagination
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 messages:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       notification_id:
- *                         type: string
- *                       type:
- *                         type: string
- *                       data:
- *                         type: object
- *                       read:
- *                         type: boolean
- *                       time:
- *                         type: string
- *                         format: date-time
- *                 page:
- *                   type: integer
- *                   description: Current page number
- *                 total:
- *                   type: integer
- *                   description: Total number of notifications on this page
- */
-router.get("/user", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.findUserNotifications);
-
-/**
- * @swagger
  * /notification:
  *   put:
  *     summary: Update a notification with id
