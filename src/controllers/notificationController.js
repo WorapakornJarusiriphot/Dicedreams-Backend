@@ -16,7 +16,7 @@ exports.findAll = async (req, res, next) => {
     const messages = [];
     const notifications = await Notification.findAll({
       where: { user_id: req.user.users_id },
-      order: [["time", "DESC"]], // เรียงลำดับจากเวลาใหม่สุดไปเก่าสุด
+      order: [['time', 'DESC']], // เรียงลำดับจากเวลาใหม่สุดไปเก่าสุด
     });
 
     for (let i = 0; i < notifications.length; i++) {
@@ -74,11 +74,12 @@ exports.findAll = async (req, res, next) => {
           });
         }
       } else if (notifications[i].type === "chat") {
-        // เพิ่มส่วนที่จัดการการแจ้งเตือนประเภท chat
+        // เพิ่ม alias 'user' ตามที่ตั้งไว้ในโมเดล Chat
         const chat = await Chat.findByPk(notifications[i].entity_id, {
           include: [
             {
               model: User,
+              as: "user", // ระบุ alias 'user' ที่เชื่อมโยงกับ Chat
               attributes: ["first_name", "last_name", "user_image"],
             },
           ],
