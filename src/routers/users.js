@@ -224,7 +224,7 @@ router.get('/:id', [passportJWT.isLogin], userController.findOne);
  *       500:
  *         description: Some error occurred while creating the User.
  */
-router.put('/:id', [passportJWT.isLogin, authentication.isAdminOrUser], userController.update);
+router.put('/:id', [passportJWT.isLogin, authentication.isUserOrAdminOrStore], userController.update);
 
 /**
  * @swagger
