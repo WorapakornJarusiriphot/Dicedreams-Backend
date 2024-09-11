@@ -16,7 +16,7 @@ exports.findAll = async (req, res, next) => {
     const messages = [];
     const notifications = await Notification.findAll({
       where: { user_id: req.user.users_id },
-      order: [["time", "DESC"]], // เรียงลำดับจากเวลาใหม่สุดไปเก่าสุด
+      order: [['time', 'DESC']], // เรียงลำดับจากเวลาใหม่สุดไปเก่าสุด
     });
 
     for (let i = 0; i < notifications.length; i++) {
@@ -66,34 +66,6 @@ exports.findAll = async (req, res, next) => {
               game_user_first_name: participate.post_game.user.first_name,
               game_user_last_name: participate.post_game.user.last_name,
               game_user_image: participate.post_game.user.user_image,
-            },
-            notification_id: notifications[i].notification_id,
-            entity_id: notifications[i].entity_id,
-            read: notifications[i].read,
-            time: notifications[i].time,
-          });
-        }
-      } else if (notifications[i].type === "chat") {
-        // เพิ่มส่วนที่จัดการการแจ้งเตือนประเภท chat
-        const chat = await Chat.findByPk(notifications[i].entity_id, {
-          include: [
-            {
-              model: User,
-              attributes: ["first_name", "last_name", "user_image"],
-            },
-          ],
-        });
-
-        if (chat && chat.user) {
-          messages.push({
-            type: "chat",
-            data: {
-              message: chat.message,
-              datetime_chat: chat.datetime_chat,
-              first_name: chat.user.first_name,
-              last_name: chat.user.last_name,
-              user_image: chat.user.user_image,
-              post_games_id: chat.post_games_id, // เชื่อมโยงกับโพสต์เกม
             },
             notification_id: notifications[i].notification_id,
             entity_id: notifications[i].entity_id,
