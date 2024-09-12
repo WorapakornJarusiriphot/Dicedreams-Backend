@@ -114,7 +114,7 @@ exports.findAll = async (req, res, next) => {
 
 // API สำหรับดึงการแจ้งเตือนด้วย pagination
 exports.findUserNotifications = async (req, res, next) => {
-  const { page = 1, limit = 105 } = req.query; // รับค่าจาก query string
+  const { page = 1, limit = 10 } = req.query; // รับค่าจาก query string
   const offset = (page - 1) * limit; // คำนวณตำแหน่ง offset
 
   try {
