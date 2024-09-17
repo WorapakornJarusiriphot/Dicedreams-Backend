@@ -217,6 +217,36 @@ exports.deleteAll = (req, res) => {
   res.send({ message: "DeleteAll handler" });
 };
 
+exports.findByEmail = async (req, res, next) => {
+  try {
+    const email = req.query.email;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Email query parameter is required",
+      });
+    }
+
+    const user = await User.findOne({
+      where: { email },
+      attributes: { exclude: ["password"] }, // ซ่อน password
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User Not Found",
+      });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
 async function saveImageToDisk(baseImage) {
   const projectPath = path.resolve("./");
 
