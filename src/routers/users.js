@@ -104,6 +104,51 @@ router.get('/', userController.findAll);
 
 /**
  * @swagger
+ * /users/findByEmail:
+ *   get:
+ *     summary: Retrieve a user by email
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: email
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The email of the user
+ *         example: "Worapakorn@gmail.com"
+ *     responses:
+ *       200:
+ *         description: A user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 users_id:
+ *                   type: string
+ *                 first_name:
+ *                   type: string
+ *                 last_name:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 birthday:
+ *                   type: string
+ *                 phone_number:
+ *                   type: string
+ *                 gender:
+ *                   type: string
+ *                 user_image:
+ *                   type: string
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Server Error
+ */
+router.get('/findByEmail', userController.findByEmail);
+
+/**
+ * @swagger
  * /users/{id}:
  *   get:
  *     summary: Retrieve a single user by ID
@@ -267,50 +312,5 @@ router.delete('/:id', [passportJWT.isLogin, authentication.isAdmin], userControl
  *         description: Unauthorized
  */
 router.delete('/', [passportJWT.isLogin, authentication.isAdmin], userController.deleteAll);
-
-/**
- * @swagger
- * /users/findByEmail:
- *   get:
- *     summary: Retrieve a user by email
- *     tags: [Users]
- *     parameters:
- *       - in: query
- *         name: email
- *         schema:
- *           type: string
- *         required: true
- *         description: The email of the user
- *         example: "Worapakorn@gmail.com"
- *     responses:
- *       200:
- *         description: A user object
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 users_id:
- *                   type: string
- *                 first_name:
- *                   type: string
- *                 last_name:
- *                   type: string
- *                 email:
- *                   type: string
- *                 birthday:
- *                   type: string
- *                 phone_number:
- *                   type: string
- *                 gender:
- *                   type: string
- *                 user_image:
- *                   type: string
- *       404:
- *         description: User not found
- *       500:
- *         description: Server Error
- */
-router.get('/findByEmail', userController.findByEmail);
 
 module.exports = router;
