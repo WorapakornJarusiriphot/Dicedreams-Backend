@@ -15,26 +15,18 @@ const User = db.user;
 exports.create = async (req, res, next) => {
   try {
     // ตรวจสอบว่าฟิลด์ที่จำเป็นต้องไม่ว่าง
-    if (
-      !req.body.first_name ||
-      !req.body.last_name ||
-      !req.body.email ||
-      !req.body.provider
-    ) {
+    if (!req.body.first_name || !req.body.last_name || !req.body.email || !req.body.provider) {
       return res.status(400).send({
         message: "First name, last name, email, and provider are required!",
       });
     }
 
-    // ตรวจสอบรูปแบบวันเกิด หากไม่มีวันเกิดจะข้ามการตรวจสอบนี้ไป
-    let birthday = null;
-    if (req.body.birthday) {
-      birthday = moment(req.body.birthday, "MM-DD-YYYY");
-      if (!birthday.isValid()) {
-        return res.status(400).send({
-          message: "Invalid date format, please use MM-DD-YYYY",
-        });
-      }
+    // ตรวจสอบรูปแบบวันเกิด
+    let birthday = moment(req.body.birthday, "MM-DD-YYYY");
+    if (!birthday.isValid()) {
+      return res.status(400).send({
+        message: "Invalid date format, please use MM-DD-YYYY",
+      });
     }
 
     // แฮชรหัสผ่าน
@@ -58,10 +50,10 @@ exports.create = async (req, res, next) => {
       username: req.body.username,
       password: passwordHash,
       email: req.body.email,
-      birthday: birthday, // กำหนดวันเกิดตามค่าที่ตรวจสอบ
+      birthday: birthday,
       phone_number: req.body.phone_number,
       gender: req.body.gender,
-      user_image: userImage || "", // หากไม่มีรูปภาพให้ตั้งเป็นค่าว่าง
+      user_image: userImage || '', // หากไม่มีรูปภาพให้ตั้งเป็นค่าว่าง
     };
 
     await User.create(user);
@@ -70,7 +62,7 @@ exports.create = async (req, res, next) => {
       message: "User was registered successfully!",
     });
   } catch (error) {
-    if (error.name === "SequelizeUniqueConstraintError") {
+    if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         error: {
           status_code: 400,
@@ -81,8 +73,7 @@ exports.create = async (req, res, next) => {
       res.status(500).json({
         error: {
           status_code: 500,
-          message:
-            error.message || "Some error occurred while creating the User.",
+          message: error.message || "Some error occurred while creating the User.",
         },
       });
     }
@@ -93,7 +84,7 @@ exports.findAll = async (req, res, next) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
-      order: [["createdAt", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
+      order: [['createdAt', 'DESC']] // เรียงลำดับจากใหม่ไปเก่า
     });
 
     const usersWithPhotoDomain = await users.map((user, index) => {
@@ -178,7 +169,7 @@ exports.update = async (req, res, next) => {
       });
     }
   } catch (error) {
-    if (error.name === "SequelizeUniqueConstraintError") {
+    if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         error: {
           status_code: 400,
