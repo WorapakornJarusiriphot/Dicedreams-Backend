@@ -14,27 +14,34 @@ const User = db.user;
 
 exports.create = async (req, res, next) => {
   try {
-    // Validate request
-    if (!req.body.username) {
-      res.status(400).send({
-        message: "Content can not be empty!",
+    // ตรวจสอบว่าฟิลด์ที่จำเป็นต้องไม่ว่าง
+    if (
+      !req.body.first_name ||
+      !req.body.last_name ||
+      !req.body.email ||
+      !req.body.provider
+    ) {
+      return res.status(400).send({
+        message: "First name, last name, email, and provider are required!",
       });
-      return;
     }
 
-    let birthday = moment(req.body.birthday, "MM-DD-YYYY");
-    if (!birthday.isValid()) {
-      res.status(400).send({
-        message: "Invalid date format, please use MM-DD-YYYY",
-      });
-      return;
+    // ตรวจสอบรูปแบบวันเกิด หากไม่มีวันเกิดจะข้ามการตรวจสอบนี้ไป
+    let birthday = null;
+    if (req.body.birthday) {
+      birthday = moment(req.body.birthday, "MM-DD-YYYY");
+      if (!birthday.isValid()) {
+        return res.status(400).send({
+          message: "Invalid date format, please use MM-DD-YYYY",
+        });
+      }
     }
 
-    // Hash password
+    // แฮชรหัสผ่าน
     const salt = await bcrypt.genSalt(5);
     const passwordHash = await bcrypt.hash(req.body.password, salt);
 
-    // Handle user image
+    // จัดการรูปภาพผู้ใช้
     let userImage;
     if (req.body.user_image) {
       if (req.body.user_image.startsWith("data:image")) {
@@ -44,17 +51,17 @@ exports.create = async (req, res, next) => {
       }
     }
 
-    // Create a user
+    // สร้างผู้ใช้ใหม่
     const user = {
       first_name: req.body.first_name,
       last_name: req.body.last_name,
       username: req.body.username,
       password: passwordHash,
       email: req.body.email,
-      birthday: birthday,
+      birthday: birthday, // กำหนดวันเกิดตามค่าที่ตรวจสอบ
       phone_number: req.body.phone_number,
       gender: req.body.gender,
-      user_image: userImage,
+      user_image: userImage || "", // หากไม่มีรูปภาพให้ตั้งเป็นค่าว่าง
     };
 
     await User.create(user);
@@ -63,7 +70,7 @@ exports.create = async (req, res, next) => {
       message: "User was registered successfully!",
     });
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
+    if (error.name === "SequelizeUniqueConstraintError") {
       res.status(400).json({
         error: {
           status_code: 400,
@@ -74,7 +81,8 @@ exports.create = async (req, res, next) => {
       res.status(500).json({
         error: {
           status_code: 500,
-          message: error.message || "Some error occurred while creating the User.",
+          message:
+            error.message || "Some error occurred while creating the User.",
         },
       });
     }
@@ -85,7 +93,7 @@ exports.findAll = async (req, res, next) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
-      order: [['createdAt', 'DESC']] // เรียงลำดับจากใหม่ไปเก่า
+      order: [["createdAt", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
     });
 
     const usersWithPhotoDomain = await users.map((user, index) => {
@@ -170,7 +178,7 @@ exports.update = async (req, res, next) => {
       });
     }
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
+    if (error.name === "SequelizeUniqueConstraintError") {
       res.status(400).json({
         error: {
           status_code: 400,

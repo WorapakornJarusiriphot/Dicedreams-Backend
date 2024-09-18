@@ -152,91 +152,70 @@ exports.searchActiveGames = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
+  if (search_date_meet) {
+    const date = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
+    condition.date_meet = {
+      [Op.gte]: date,
+    };
+  }
+
+  if (search_time_meet) {
+    condition.time_meet = {
+      [Op.gte]: search_time_meet,
+    };
+  }
+
   try {
     let data = await PostGames.findAll({
       where: condition,
       order: [
-        ["date_meet", "ASC"], // เรียงตามวันที่
-        ["time_meet", "ASC"], // เรียงตามเวลา
+        ["date_meet", "ASC"],
+        ["time_meet", "ASC"],
       ],
     });
 
-    const currentTime = moment();
-
-    // กรองโพสต์ที่วันที่และเวลานัดเล่นยังไม่ผ่านไป
-    data = data.filter((post) => {
-      const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
-      return postDateTime.isAfter(currentTime); // โชว์เฉพาะโพสต์ที่ยังไม่ผ่านเวลานัด
-    });
-
-    // คำนวณความใกล้เคียงตามวันที่
-    if (search_date_meet) {
-      const targetDate = moment(search_date_meet, "MM/DD/YYYY").format(
-        "YYYY-MM-DD"
-      );
-
-      data = data.map((post) => {
-        const diffInDays = Math.abs(
-          moment(post.date_meet).diff(targetDate, "days")
-        );
-        return { ...post.toJSON(), dateDiff: diffInDays }; // เพิ่มความต่างของวันที่เข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามวันที่ที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.dateDiff - b.dateDiff);
-    }
-
-    // คำนวณความใกล้เคียงตามเวลา
-    if (search_time_meet) {
-      const targetTime = moment(search_time_meet, "HH:mm");
-
-      data = data.map((post) => {
-        const timeDiff = Math.abs(
-          moment(post.time_meet, "HH:mm").diff(targetTime, "minutes")
-        );
-        return { ...post, timeDiff }; // เพิ่มความต่างของเวลาเข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามเวลาที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.timeDiff - b.timeDiff);
-    }
-
-    // คำนวณความใกล้เคียงตามจำนวนคน
+    // การกรองตามจำนวนคนที่ต้องการ
     if (search_num_people) {
-      const targetPeople = parseInt(search_num_people);
-
-      data = data.map((post) => {
-        const peopleDiff = Math.abs(post.num_people - targetPeople);
-        return { ...post, peopleDiff }; // เพิ่มความต่างของจำนวนคนเข้าไปในแต่ละโพสต์
+      const fuse = new Fuse(data, {
+        keys: ["num_people"],
+        threshold: 0.3,
+        distance: parseInt(search_num_people),
       });
-
-      // เรียงโพสต์ตามจำนวนคนที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.peopleDiff - b.peopleDiff);
+      const result = fuse.search(search_num_people);
+      data = result.length
+        ? result.map(({ item }) => item)
+        : data.sort(
+            (a, b) =>
+              Math.abs(a.num_people - search_num_people) -
+              Math.abs(b.num_people - search_num_people)
+          );
     }
 
-    // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
+    // การกรองตามคำค้นหา
     if (search) {
-      const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
+      const searchTerms = search.split("&search=").filter((term) => term);
       const fuse = new Fuse(data, {
-        keys: ["name_games", "detail_post"], // ค้นหาใน name_games และ detail_post
-        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้
-        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
+        keys: ["name_games", "detail_post"],
+        threshold: 0.3,
       });
 
       let finalResults = [];
       searchTerms.forEach((term) => {
         const result = fuse.search(term);
-        finalResults = [...finalResults, ...result];
+        finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
 
-      // รวมผลลัพธ์และเรียงลำดับตามคะแนนความใกล้เคียง
-      finalResults.sort((a, b) => a.score - b.score);
-
-      // เอาเฉพาะโพสต์ออกมา
-      data = finalResults.map(({ item }) => item);
+      data = [...new Set(finalResults)];
     }
 
-    // การแก้ไข URL ของรูปภาพ
+    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
+    const currentTime = moment();
+    data = data.filter((post) => {
+      const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
+      const isPostFull = post.participants >= post.num_people;
+      return postDateTime.isAfter(currentTime) && !isPostFull;
+    });
+
     data.forEach((post) => {
       if (post.games_image) {
         post.games_image = `${req.protocol}://${req.get("host")}/images/${

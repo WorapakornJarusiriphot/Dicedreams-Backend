@@ -62,7 +62,6 @@ router.post("/", async (req, res) => {
   const { identifier, password } = req.body;
 
   try {
-    // ค้นหาผู้ใช้ด้วย username หรือ email
     const user = await User.findOne({
       where: {
         [db.Sequelize.Op.or]: [{ username: identifier }, { email: identifier }],
@@ -79,27 +78,23 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "User Not Exist" });
     }
 
-    // ตรวจสอบความถูกต้องของรหัสผ่าน
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Incorrect Password !" });
     }
 
-    // สร้าง JWT token พร้อมข้อมูล users_id, store_id และ role
     const token = jwt.sign(
       {
         users_id: user.users_id,
         store_id: user.store?.store_id,
-        role: user.role, // เพิ่ม role เข้าไปใน token
       },
       config.secret,
-      { expiresIn: 86400 } // กำหนดเวลาให้หมดอายุใน 24 ชั่วโมง
+      { expiresIn: 86400 }
     );
 
     console.log("JWT Payload:", {
       users_id: user.users_id,
-      store_id: user.store?.store_id,
-      role: user.role, // แสดง role
+      store_id: user.store_id,
     });
     console.log("JWT Token:", token);
 
@@ -107,7 +102,7 @@ router.post("/", async (req, res) => {
 
     return res.status(200).json({
       access_token: token,
-      expires_in: expires_in.exp, // ใช้เวลาหมดอายุจาก token
+      expires_in: expires_in.exp,
       token_type: "Bearer",
     });
   } catch (e) {

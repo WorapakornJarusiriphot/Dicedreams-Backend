@@ -134,8 +134,22 @@ exports.searchActiveActivities = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
+  if (search_date_activity) {
+    const date = moment(search_date_activity, "MM/DD/YYYY").format(
+      "YYYY-MM-DD"
+    );
+    condition.date_activity = {
+      [Op.gte]: date,
+    };
+  }
+
+  if (search_time_activity) {
+    condition.time_activity = {
+      [Op.gte]: search_time_activity,
+    };
+  }
+
   try {
-    // ดึงข้อมูลทั้งหมดจากฐานข้อมูลที่มีสถานะ active
     let data = await PostActivity.findAll({
       where: condition,
       order: [
@@ -144,68 +158,33 @@ exports.searchActiveActivities = async (req, res) => {
       ],
     });
 
-    const currentTime = moment();
-
-    // กรองโพสต์ที่วันและเวลายังไม่ผ่านไป
-    data = data.filter((post) => {
-      const postDateTime = moment(
-        `${post.date_activity} ${post.time_activity}`
-      );
-      return postDateTime.isAfter(currentTime); // โชว์เฉพาะโพสต์ที่ยังไม่ผ่านเวลานัด
-    });
-
-    // การกรองตามวันที่ใกล้เคียง
-    if (search_date_activity) {
-      const targetDate = moment(search_date_activity, "MM/DD/YYYY");
-
-      data = data.map((post) => {
-        const diffInDays = Math.abs(
-          moment(post.date_activity).diff(targetDate, "days")
-        );
-        return { ...post.toJSON(), dateDiff: diffInDays }; // เพิ่มความต่างของวันที่เข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามวันที่ที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.dateDiff - b.dateDiff);
-    }
-
-    // การกรองตามเวลาใกล้เคียง
-    if (search_time_activity) {
-      const targetTime = moment(search_time_activity, "HH:mm");
-
-      data = data.map((post) => {
-        const timeDiff = Math.abs(
-          moment(post.time_activity, "HH:mm").diff(targetTime, "minutes")
-        );
-        return { ...post, timeDiff }; // เพิ่มความต่างของเวลาเข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามเวลาที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.timeDiff - b.timeDiff);
-    }
-
-    // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
+    // การกรองตามคำค้นหา
     if (search) {
       const searchTerms = search.split("&search=").filter((term) => term);
       const fuse = new Fuse(data, {
-        keys: ["name_activity", "detail_post"], // ค้นหาใน name_activity และ detail_post
-        threshold: 0.5,
-        includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
+        keys: ["name_activity", "detail_post"],
+        threshold: 0.3,
       });
 
       let finalResults = [];
       searchTerms.forEach((term) => {
         const result = fuse.search(term);
-        finalResults = [...finalResults, ...result];
+        finalResults = [...finalResults, ...result.map(({ item }) => item)];
       });
 
-      finalResults.sort((a, b) => a.score - b.score);
-
-      // เอาเฉพาะโพสต์ออกมา
-      data = finalResults.map(({ item }) => item);
+      data = [...new Set(finalResults)];
     }
 
-    // การแก้ไข URL ของรูปภาพ
+    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
+    const currentTime = moment();
+    data = data.filter((post) => {
+      const postDateTime = moment(
+        `${post.date_activity} ${post.time_activity}`
+      );
+      const isPostFull = post.participants >= post.num_people;
+      return postDateTime.isAfter(currentTime) && !isPostFull;
+    });
+
     data.forEach((post) => {
       if (post.post_activity_image) {
         post.post_activity_image = `${req.protocol}://${req.get(

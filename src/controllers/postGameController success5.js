@@ -152,66 +152,38 @@ exports.searchActiveGames = async (req, res) => {
     status_post: "active", // เฉพาะโพสต์ที่ยัง active อยู่
   };
 
+  // การกรองตามวันที่
+  let targetDate = null;
+  if (search_date_meet) {
+    targetDate = moment(search_date_meet, "MM/DD/YYYY").format("YYYY-MM-DD");
+    condition.date_meet = {
+      [Op.gte]: targetDate,
+    };
+  }
+
+  // การกรองตามเวลา
+  let targetTime = null;
+  if (search_time_meet) {
+    targetTime = search_time_meet;
+    condition.time_meet = {
+      [Op.gte]: search_time_meet,
+    };
+  }
+
   try {
     let data = await PostGames.findAll({
       where: condition,
       order: [
-        ["date_meet", "ASC"], // เรียงตามวันที่
-        ["time_meet", "ASC"], // เรียงตามเวลา
+        ["date_meet", "ASC"],
+        ["time_meet", "ASC"],
       ],
     });
 
-    const currentTime = moment();
-
-    // กรองโพสต์ที่วันที่และเวลานัดเล่นยังไม่ผ่านไป
-    data = data.filter((post) => {
-      const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
-      return postDateTime.isAfter(currentTime); // โชว์เฉพาะโพสต์ที่ยังไม่ผ่านเวลานัด
-    });
-
-    // คำนวณความใกล้เคียงตามวันที่
-    if (search_date_meet) {
-      const targetDate = moment(search_date_meet, "MM/DD/YYYY").format(
-        "YYYY-MM-DD"
-      );
-
-      data = data.map((post) => {
-        const diffInDays = Math.abs(
-          moment(post.date_meet).diff(targetDate, "days")
-        );
-        return { ...post.toJSON(), dateDiff: diffInDays }; // เพิ่มความต่างของวันที่เข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามวันที่ที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.dateDiff - b.dateDiff);
-    }
-
-    // คำนวณความใกล้เคียงตามเวลา
-    if (search_time_meet) {
-      const targetTime = moment(search_time_meet, "HH:mm");
-
-      data = data.map((post) => {
-        const timeDiff = Math.abs(
-          moment(post.time_meet, "HH:mm").diff(targetTime, "minutes")
-        );
-        return { ...post, timeDiff }; // เพิ่มความต่างของเวลาเข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามเวลาที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.timeDiff - b.timeDiff);
-    }
-
-    // คำนวณความใกล้เคียงตามจำนวนคน
+    // การกรองตามจำนวนคนที่ต้องการ
     if (search_num_people) {
-      const targetPeople = parseInt(search_num_people);
-
-      data = data.map((post) => {
-        const peopleDiff = Math.abs(post.num_people - targetPeople);
-        return { ...post, peopleDiff }; // เพิ่มความต่างของจำนวนคนเข้าไปในแต่ละโพสต์
-      });
-
-      // เรียงโพสต์ตามจำนวนคนที่ใกล้เคียงกับที่ค้นหามากที่สุด
-      data.sort((a, b) => a.peopleDiff - b.peopleDiff);
+      data = data.filter(
+        (post) => post.num_people >= parseInt(search_num_people)
+      );
     }
 
     // การกรองตามคำค้นหาหลายคำ (ใช้ Fuse.js)
@@ -219,7 +191,7 @@ exports.searchActiveGames = async (req, res) => {
       const searchTerms = search.split("&search=").filter((term) => term); // แยกคำค้นหาออกเป็น Array
       const fuse = new Fuse(data, {
         keys: ["name_games", "detail_post"], // ค้นหาใน name_games และ detail_post
-        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้
+        threshold: 0.5, // ค่าความแม่นยำในการค้นหาที่สามารถยอมรับได้ (0 = ตรงเป๊ะ, 1 = ไม่แม่นยำเลย)
         includeScore: true, // เพิ่มคะแนนการแมตช์เพื่อนำมาเรียงลำดับ
       });
 
@@ -229,11 +201,49 @@ exports.searchActiveGames = async (req, res) => {
         finalResults = [...finalResults, ...result];
       });
 
-      // รวมผลลัพธ์และเรียงลำดับตามคะแนนความใกล้เคียง
+      // รวมผลลัพธ์และเรียงลำดับตามคะแนน (จากใกล้เคียงมากที่สุดไปน้อยที่สุด)
       finalResults.sort((a, b) => a.score - b.score);
 
       // เอาเฉพาะโพสต์ออกมา
       data = finalResults.map(({ item }) => item);
+    }
+
+    // การกรองโพสต์ที่เลยเวลานัดเล่นหรือคนเต็มแล้ว
+    const currentTime = moment();
+    data = data.filter((post) => {
+      const postDateTime = moment(`${post.date_meet} ${post.time_meet}`);
+      const isPostFull = post.participants >= post.num_people;
+      return postDateTime.isAfter(currentTime) && !isPostFull;
+    });
+
+    // จัดเรียงตามความใกล้เคียงของวันที่และเวลา
+    if (targetDate) {
+      data.sort((a, b) => {
+        const diffA = Math.abs(moment(a.date_meet).diff(targetDate, "days"));
+        const diffB = Math.abs(moment(b.date_meet).diff(targetDate, "days"));
+        return diffA - diffB;
+      });
+    }
+
+    if (targetTime) {
+      data.sort((a, b) => {
+        const timeDiffA = Math.abs(
+          moment(a.time_meet, "HH:mm").diff(targetTime, "minutes")
+        );
+        const timeDiffB = Math.abs(
+          moment(b.time_meet, "HH:mm").diff(targetTime, "minutes")
+        );
+        return timeDiffA - timeDiffB;
+      });
+    }
+
+    // จัดเรียงตามจำนวนคนที่ต้องการ
+    if (search_num_people) {
+      data.sort((a, b) => {
+        const peopleDiffA = Math.abs(a.num_people - search_num_people);
+        const peopleDiffB = Math.abs(b.num_people - search_num_people);
+        return peopleDiffA - peopleDiffB;
+      });
     }
 
     // การแก้ไข URL ของรูปภาพ
