@@ -60,6 +60,8 @@ const passportJWT = require('../middleware/passportJWT');
  *         description: Invalid input
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: You do not have permission to access this section. This section is for store access only. || ไม่มีสิทธิ์ใช้งานส่วนนี้ เฉพาะ store เท่านั้น
  */
 router.post("/", [passportJWT.isLogin, authentication.isStore], postActivityController.create);
 

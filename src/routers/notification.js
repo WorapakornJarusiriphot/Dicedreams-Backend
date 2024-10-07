@@ -97,6 +97,8 @@ router.get("/", [passportJWT.isLogin, authentication.isStoreOrUser], notificatio
  *                 total:
  *                   type: integer
  *                   description: Total number of notifications on this page
+ *       401:
+ *         description: Unauthorized
  */
 router.get("/user", [passportJWT.isLogin, authentication.isStoreOrUser], notificationController.findUserNotifications);
 

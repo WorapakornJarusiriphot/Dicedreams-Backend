@@ -43,7 +43,7 @@ const passportJWT = require('../middleware/passportJWT');
  *       201:
  *         description: The participation was successfully created
  *       400:
- *         description: Invalid input
+ *         description: Invalid input || You already participate this game!
  *       401:
  *         description: Unauthorized
  */

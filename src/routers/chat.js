@@ -43,7 +43,7 @@ const passportJWT = require('../middleware/passportJWT');
  *       201:
  *         description: The chat was successfully created
  *       400:
- *         description: Invalid input
+ *         description: Invalid input || Content can not be empty!
  *       401:
  *         description: Unauthorized
  */
