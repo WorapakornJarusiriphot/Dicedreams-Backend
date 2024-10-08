@@ -9,6 +9,7 @@ const path = require("path");
 const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 const config = { DOMAIN: process.env.DOMAIN };
+const IMAGE_PATH = { IMAGE_PATH: process.env.IMAGE_PATH };
 const AWS = require("aws-sdk");
 const configs = require("../configs/config"); // ดึง config.js มาใช้
 
