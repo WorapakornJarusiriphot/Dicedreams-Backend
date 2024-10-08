@@ -52,7 +52,7 @@ const passportJWT = require('../middleware/passportJWT');
  *                 example: "เทศบาล"
  *               store_image:
  *                 type: string
- *                 example: "https://dicedreams-images.s3.ap-southeast-2.amazonaws.com/images/b3afd629-c2cb-4dfe-8657-157f9a567fb8.jpeg"
+ *                 example: "b3afd629-c2cb-4dfe-8657-157f9a567fb8.jpeg"
  *               users_id:
  *                 type: string
  *                 example: "39fb4df4-05c4-4be4-8777-351a9bce42e5"
@@ -274,7 +274,7 @@ router.get("/user/:id", [passportJWT.isLogin, authentication.isStoreOrUser], sto
  *                 example: "เทศบาล"
  *               store_image:
  *                 type: string
- *                 example: "https://dicedreams-images.s3.ap-southeast-2.amazonaws.com/images/b3afd629-c2cb-4dfe-8657-157f9a567fb8.jpeg"
+ *                 example: "b3afd629-c2cb-4dfe-8657-157f9a567fb8.jpeg"
  *     responses:
  *       200:
  *         description: Store was updated successfully.

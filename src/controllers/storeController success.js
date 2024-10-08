@@ -7,16 +7,6 @@ const fs = require("fs");
 const path = require("path");
 const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
-const crypto = require("crypto");
-const AWS = require("aws-sdk");
-const config = require("../configs/config"); // ดึง config.js มาใช้
-
-// ตั้งค่า AWS SDK ให้เชื่อมต่อกับ S3
-const s3 = new AWS.S3({
-  accessKeyId: config.AWS_ACCESS_KEY_ID,
-  secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
-  region: config.AWS_REGION,
-});
 
 // Create and Save a new Store
 exports.create = async (req, res, next) => {
@@ -55,9 +45,7 @@ exports.create = async (req, res, next) => {
 
     // Save Store in the database async
     const data = await Store.create(store);
-    res
-      .status(201)
-      .json({ message: "Store was created successfully.", data: data });
+    res.status(201).json({ message: "Store was created successfully.", data: data });
   } catch (error) {
     next(error);
   }
@@ -66,22 +54,19 @@ exports.create = async (req, res, next) => {
 // Retrieve all Stores from the database.
 exports.findAll = (req, res) => {
   Store.findAll({
-    order: [["createdAt", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
+    order: [['createdAt', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
-            store.store_image
-          }`;
+          store.store_image = `${req.protocol}://${req.get("host")}/images/${store.store_image}`;
         }
       });
       res.status(200).json(data);
     })
     .catch((error) => {
       res.status(500).json({
-        message:
-          error.message || "Some error occurred while retrieving Stores.",
+        message: error.message || "Some error occurred while retrieving Stores.",
       });
     });
 };
@@ -94,21 +79,19 @@ exports.findOne = (req, res) => {
     .then((data) => {
       if (data) {
         if (data.store_image) {
-          data.store_image = `${req.protocol}://${req.get("host")}/images/${
-            data.store_image
-          }`;
+          data.store_image = `${req.protocol}://${req.get("host")}/images/${data.store_image}`;
         }
         res.status(200).json(data);
       } else {
         res.status(404).send({
-          message: `Cannot find Store with id=${id}.`,
+          message: `Cannot find Store with id=${id}.`
         });
       }
     })
     .catch((err) => {
       console.error("Error retrieving Store with id=", id, "error:", err);
       res.status(500).send({
-        message: "Error retrieving Store with id=" + id,
+        message: "Error retrieving Store with id=" + id
       });
     });
 };
@@ -201,14 +184,12 @@ exports.findAllByUserId = (req, res) => {
   const id = req.params.id;
   Store.findAll({
     where: { user_id: id },
-    order: [["createdAt", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
+    order: [['createdAt', 'DESC']]  // เรียงลำดับจากใหม่ไปเก่า
   })
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
-            store.store_image
-          }`;
+          store.store_image = `${req.protocol}://${req.get("host")}/images/${store.store_image}`;
         }
       });
       res.status(200).json(data);
@@ -221,38 +202,27 @@ exports.findAllByUserId = (req, res) => {
 };
 
 async function saveImageToDisk(baseImage) {
+  const projectPath = path.resolve("./");
+
+  const uploadPath = `${projectPath}/src/public/images/`;
+
   const ext = baseImage.substring(
     baseImage.indexOf("/") + 1,
     baseImage.indexOf(";base64")
   );
 
-  let filename = `${uuidv4()}.${ext}`;
-
-  const imageBuffer = Buffer.from(
-    baseImage.replace(/^data:image\/\w+;base64,/, ""),
-    "base64"
-  );
-
-  // ตรวจสอบว่าตัวแปร Bucket ถูกกำหนดหรือไม่
-  if (!process.env.S3_BUCKET_NAME) {
-    throw new Error("S3 Bucket name is missing in environment variables.");
+  let filename = "";
+  if (ext === "svg+xml") {
+    filename = `${uuidv4()}.svg`;
+  } else {
+    filename = `${uuidv4()}.${ext}`;
   }
 
-  const params = {
-    Bucket: process.env.S3_BUCKET_NAME, // ใช้ตัวแปรจาก .env
-    Key: `images/${filename}`, // ตั้งชื่อไฟล์ที่ต้องการอัปโหลด
-    Body: imageBuffer,
-    ContentEncoding: "base64", // บอก S3 ว่าไฟล์นี้ถูกเข้ารหัสด้วย base64
-    ContentType: `image/${ext}`, // ประเภทของรูปภาพ
-  };
+  let image = decodeBase64Image(baseImage);
 
-  try {
-    const uploadResponse = await s3.upload(params).promise();
-    return uploadResponse.Location; // คืนค่า URL ของรูปภาพที่ถูกอัปโหลด
-  } catch (error) {
-    console.error("Error uploading image to S3:", error);
-    throw new Error("Failed to upload image to S3.");
-  }
+  await writeFileAsync(uploadPath + filename, image.data, "base64");
+
+  return filename;
 }
 
 function decodeBase64Image(base64Str) {

@@ -374,7 +374,7 @@ router.get("/:id", [passportJWT.isLogin, authentication.isStoreOrUser], postGame
  *                 example: "17:00:00"
  *               games_image:
  *                 type: string
- *                 example: "0b2794e6-bdcb-419c-b8fc-52d35a88b958.jpeg"
+ *                 example: "https://dicedreams-images.s3.ap-southeast-2.amazonaws.com/images/0b2794e6-bdcb-419c-b8fc-52d35a88b958.jpeg"
  *               status_post:
  *                 type: string
  *                 example: "unActive"
