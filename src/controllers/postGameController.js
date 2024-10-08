@@ -9,6 +9,7 @@ const { promisify } = require("util");
 const Fuse = require("fuse.js");
 const writeFileAsync = promisify(fs.writeFile);
 const crypto = require('crypto');
+const IMAGE_PATH = { IMAGE_PATH: process.env.IMAGE_PATH };
 const AWS = require('aws-sdk');
 const config = require('../configs/config');  // ดึง config.js มาใช้
 
