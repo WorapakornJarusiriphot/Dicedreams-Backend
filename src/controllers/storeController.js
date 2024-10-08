@@ -8,6 +8,7 @@ const path = require("path");
 const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 const crypto = require("crypto");
+const IMAGE_PATH = { IMAGE_PATH: process.env.IMAGE_PATH };
 const AWS = require("aws-sdk");
 const config = require("../configs/config"); // ดึง config.js มาใช้
 
@@ -71,7 +72,7 @@ exports.findAll = (req, res) => {
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
+          store.store_image = `${
             store.store_image
           }`;
         }
@@ -94,7 +95,7 @@ exports.findOne = (req, res) => {
     .then((data) => {
       if (data) {
         if (data.store_image) {
-          data.store_image = `${req.protocol}://${req.get("host")}/images/${
+          data.store_image = `${
             data.store_image
           }`;
         }
@@ -206,7 +207,7 @@ exports.findAllByUserId = (req, res) => {
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
+          store.store_image = `${
             store.store_image
           }`;
         }

@@ -8,6 +8,7 @@ const { promisify } = require("util");
 const Fuse = require("fuse.js");
 const writeFileAsync = promisify(fs.writeFile);
 const crypto = require("crypto");
+const IMAGE_PATH = { IMAGE_PATH: process.env.IMAGE_PATH };
 const AWS = require("aws-sdk");
 const config = require("../configs/config"); // ดึง config.js มาใช้
 
@@ -122,9 +123,7 @@ exports.findAll = async (req, res, next) => {
 
     filteredData.forEach((post_activity) => {
       if (post_activity.post_activity_image) {
-        post_activity.post_activity_image = `${req.protocol}://${req.get(
-          "host"
-        )}/images/${post_activity.post_activity_image}`;
+        post_activity.post_activity_image = `${post_activity.post_activity_image}`;
       }
     });
 
@@ -218,9 +217,7 @@ exports.searchActiveActivities = async (req, res) => {
     // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.post_activity_image) {
-        post.post_activity_image = `${req.protocol}://${req.get(
-          "host"
-        )}/images/${post.post_activity_image}`;
+        post.post_activity_image = `${post.post_activity_image}`;
       }
     });
 
@@ -250,9 +247,7 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     post_activity.forEach((post) => {
       if (post.post_activity_image) {
-        post.post_activity_image = `${req.protocol}://${req.get(
-          "host"
-        )}/images/${post.post_activity_image}`;
+        post.post_activity_image = `${post.post_activity_image}`;
       }
     });
 

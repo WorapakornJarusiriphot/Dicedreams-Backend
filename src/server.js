@@ -108,6 +108,7 @@ server.listen(PORT, () => {
   console.log(`Swagger JSON is available at: ${DOMAIN}/swagger.json`);
   // ตรวจสอบว่าชื่อ Bucket ถูกต้องหรือไม่
   console.log("S3 Bucket:", process.env.S3_BUCKET_NAME);
+  console.log("IMAGE_PATH:", process.env.IMAGE_PATH);
 });
 
 // console.log('Using mysql2 version:', require('mysql2').version);
