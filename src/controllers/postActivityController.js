@@ -123,7 +123,7 @@ exports.findAll = async (req, res, next) => {
 
     filteredData.forEach((post_activity) => {
       if (post_activity.post_activity_image) {
-        post_activity.post_activity_image = `${IMAGE_PATH.IMAGE_PATH}/images/${post_activity.post_activity_image}`;
+        post_activity.post_activity_image = `${post_activity.post_activity_image}`;
       }
     });
 
@@ -217,7 +217,7 @@ exports.searchActiveActivities = async (req, res) => {
     // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.post_activity_image) {
-        post.post_activity_image = `${IMAGE_PATH.IMAGE_PATH}/images/${post.post_activity_image}`;
+        post.post_activity_image = `${post.post_activity_image}`;
       }
     });
 
@@ -247,7 +247,7 @@ exports.findAllStorePosts = async (req, res, next) => {
 
     post_activity.forEach((post) => {
       if (post.post_activity_image) {
-        post.post_activity_image = `${IMAGE_PATH.IMAGE_PATH}/images/${post.post_activity_image}`;
+        post.post_activity_image = `${post.post_activity_image}`;
       }
     });
 
