@@ -71,7 +71,7 @@ exports.findAll = (req, res) => {
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
+          store.store_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
             store.store_image
           }`;
         }
@@ -94,7 +94,7 @@ exports.findOne = (req, res) => {
     .then((data) => {
       if (data) {
         if (data.store_image) {
-          data.store_image = `${req.protocol}://${req.get("host")}/images/${
+          data.store_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
             data.store_image
           }`;
         }
@@ -206,7 +206,7 @@ exports.findAllByUserId = (req, res) => {
     .then((data) => {
       data.map((store) => {
         if (store.store_image) {
-          store.store_image = `${req.protocol}://${req.get("host")}/images/${
+          store.store_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
             store.store_image
           }`;
         }

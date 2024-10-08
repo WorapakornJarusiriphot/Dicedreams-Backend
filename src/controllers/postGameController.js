@@ -140,7 +140,7 @@ exports.findAll = async (req, res) => {
 
     filteredData.forEach((post_games) => {
       if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${
+        post_games.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           post_games.games_image
         }`;
       }
@@ -249,7 +249,7 @@ exports.searchActiveGames = async (req, res) => {
     // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.games_image) {
-        post.games_image = `${req.protocol}://${req.get("host")}/images/${
+        post.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           post.games_image
         }`;
       }
@@ -274,7 +274,7 @@ exports.findAllUserPosts = (req, res) => {
     .then((data) => {
       data.forEach((post) => {
         if (post.games_image) {
-          post.games_image = `${req.protocol}://${req.get("host")}/images/${
+          post.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
             post.games_image
           }`;
         }
@@ -295,7 +295,7 @@ exports.findOne = (req, res) => {
   PostGames.findByPk(id)
     .then((data) => {
       if (data.games_image) {
-        data.games_image = `${req.protocol}://${req.get("host")}/images/${
+        data.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           data.games_image
         }`;
       }
@@ -328,7 +328,7 @@ exports.update = async (req, res, next) => {
     } else {
       // แก้ไขให้เก็บเฉพาะชื่อไฟล์ ไม่ใช่ URL ทั้งหมด
       req.body.games_image = req.body.games_image.replace(
-        `${req.protocol}://${req.get("host")}/images/`,
+        `${IMAGE_PATH.IMAGE_PATH}/images/`,
         ""
       );
     }
