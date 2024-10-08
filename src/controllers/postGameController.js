@@ -8,9 +8,9 @@ const path = require("path");
 const { promisify } = require("util");
 const Fuse = require("fuse.js");
 const writeFileAsync = promisify(fs.writeFile);
-const crypto = require("crypto");
-const AWS = require("aws-sdk");
-const config = require("../configs/config"); // ดึง config.js มาใช้
+const crypto = require('crypto');
+const AWS = require('aws-sdk');
+const config = require('../configs/config');  // ดึง config.js มาใช้
 
 // ตั้งค่า AWS SDK ให้เชื่อมต่อกับ S3
 const s3 = new AWS.S3({
@@ -140,7 +140,7 @@ exports.findAll = async (req, res) => {
 
     filteredData.forEach((post_games) => {
       if (post_games.games_image) {
-        post_games.games_image = `${req.protocol}://${req.get("host")}/images/${
+        post_games.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           post_games.games_image
         }`;
       }
@@ -249,7 +249,7 @@ exports.searchActiveGames = async (req, res) => {
     // การแก้ไข URL ของรูปภาพ
     data.forEach((post) => {
       if (post.games_image) {
-        post.games_image = `${req.protocol}://${req.get("host")}/images/${
+        post.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           post.games_image
         }`;
       }
@@ -274,7 +274,7 @@ exports.findAllUserPosts = (req, res) => {
     .then((data) => {
       data.forEach((post) => {
         if (post.games_image) {
-          post.games_image = `${req.protocol}://${req.get("host")}/images/${
+          post.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
             post.games_image
           }`;
         }
@@ -295,7 +295,7 @@ exports.findOne = (req, res) => {
   PostGames.findByPk(id)
     .then((data) => {
       if (data.games_image) {
-        data.games_image = `${req.protocol}://${req.get("host")}/images/${
+        data.games_image = `${IMAGE_PATH.IMAGE_PATH}/images/${
           data.games_image
         }`;
       }
@@ -328,7 +328,7 @@ exports.update = async (req, res, next) => {
     } else {
       // แก้ไขให้เก็บเฉพาะชื่อไฟล์ ไม่ใช่ URL ทั้งหมด
       req.body.games_image = req.body.games_image.replace(
-        `${req.protocol}://${req.get("host")}/images/`,
+        `${IMAGE_PATH.IMAGE_PATH}/images/`,
         ""
       );
     }
@@ -417,19 +417,19 @@ async function saveImageToDisk(baseImage) {
   }
 
   const params = {
-    Bucket: process.env.S3_BUCKET_NAME, // ใช้ตัวแปรจาก .env
-    Key: `images/${filename}`, // ตั้งชื่อไฟล์ที่ต้องการอัปโหลด
+    Bucket: process.env.S3_BUCKET_NAME,  // ใช้ตัวแปรจาก .env
+    Key: `images/${filename}`,  // ตั้งชื่อไฟล์ที่ต้องการอัปโหลด
     Body: imageBuffer,
-    ContentEncoding: "base64", // บอก S3 ว่าไฟล์นี้ถูกเข้ารหัสด้วย base64
-    ContentType: `image/${ext}`, // ประเภทของรูปภาพ
+    ContentEncoding: 'base64',  // บอก S3 ว่าไฟล์นี้ถูกเข้ารหัสด้วย base64
+    ContentType: `image/${ext}`,  // ประเภทของรูปภาพ
   };
 
   try {
     const uploadResponse = await s3.upload(params).promise();
-    return uploadResponse.Location; // คืนค่า URL ของรูปภาพที่ถูกอัปโหลด
+    return uploadResponse.Location;  // คืนค่า URL ของรูปภาพที่ถูกอัปโหลด
   } catch (error) {
-    console.error("Error uploading image to S3:", error);
-    throw new Error("Failed to upload image to S3.");
+    console.error('Error uploading image to S3:', error);
+    throw new Error('Failed to upload image to S3.');
   }
 }
 
