@@ -8,7 +8,6 @@ const path = require("path");
 const { promisify } = require("util");
 const Fuse = require("fuse.js");
 const writeFileAsync = promisify(fs.writeFile);
-const crypto = require('crypto');
 const AWS = require('aws-sdk');
 const config = require('../configs/config');  // ดึง config.js มาใช้
 

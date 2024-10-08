@@ -9,8 +9,8 @@ const path = require("path");
 const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 const config = { DOMAIN: process.env.DOMAIN };
-const AWS = require("aws-sdk");
-const configs = require("../configs/config"); // ดึง config.js มาใช้
+const AWS = require('aws-sdk');
+const configs = require('../configs/config');  // ดึง config.js มาใช้
 
 // ตั้งค่า AWS SDK ให้เชื่อมต่อกับ S3
 const s3 = new AWS.S3({
@@ -72,7 +72,7 @@ exports.create = async (req, res, next) => {
       message: "User was registered successfully!",
     });
   } catch (error) {
-    if (error.name === "SequelizeUniqueConstraintError") {
+    if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         error: {
           status_code: 400,
@@ -83,8 +83,7 @@ exports.create = async (req, res, next) => {
       res.status(500).json({
         error: {
           status_code: 500,
-          message:
-            error.message || "Some error occurred while creating the User.",
+          message: error.message || "Some error occurred while creating the User.",
         },
       });
     }
@@ -95,13 +94,13 @@ exports.findAll = async (req, res, next) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ["password"] },
-      order: [["createdAt", "DESC"]], // เรียงลำดับจากใหม่ไปเก่า
+      order: [['createdAt', 'DESC']] // เรียงลำดับจากใหม่ไปเก่า
     });
 
     const usersWithPhotoDomain = await users.map((user, index) => {
       return {
         ...user.dataValues,
-        user_image: `${user.user_image}`,
+        user_image: `${config.DOMAIN}/images/${user.user_image}`,
       };
     });
 
@@ -119,7 +118,7 @@ exports.findOne = (req, res, next) => {
       attributes: { exclude: ["password"] },
     })
       .then(async (data) => {
-        data.user_image = `${data.user_image}`;
+        data.user_image = `${config.DOMAIN}/images/${data.user_image}`;
 
         res.status(200).json(data);
       })
@@ -180,7 +179,7 @@ exports.update = async (req, res, next) => {
       });
     }
   } catch (error) {
-    if (error.name === "SequelizeUniqueConstraintError") {
+    if (error.name === 'SequelizeUniqueConstraintError') {
       res.status(400).json({
         error: {
           status_code: 400,
@@ -258,37 +257,47 @@ exports.findByEmail = async (req, res, next) => {
 };
 
 async function saveImageToDisk(baseImage) {
-  const ext = baseImage.substring(
-    baseImage.indexOf("/") + 1,
-    baseImage.indexOf(";base64")
-  );
+  // เรียกใช้ฟังก์ชัน decodeBase64Image เพื่อแยกประเภทไฟล์และข้อมูล Base64
+  const imageData = decodeBase64Image(baseImage);
 
-  let filename = `${uuidv4()}.${ext}`;
+  const ext = imageData.type.split("/")[1]; // แยกประเภทไฟล์จาก image/jpeg หรือ image/png
 
-  const imageBuffer = Buffer.from(
-    baseImage.replace(/^data:image\/\w+;base64,/, ""),
-    "base64"
-  );
+  // คำนวณค่าแฮชของภาพเพื่อสร้างชื่อไฟล์ไม่ให้ซ้ำกัน
+  const imageBuffer = Buffer.from(imageData.data, "base64");
+  const hash = crypto.createHash('md5').update(imageBuffer).digest('hex');
+  const filename = `${hash}.${ext}`;
 
-  // ตรวจสอบว่าตัวแปร Bucket ถูกกำหนดหรือไม่
   if (!process.env.S3_BUCKET_NAME) {
     throw new Error("S3 Bucket name is missing in environment variables.");
   }
 
-  const params = {
-    Bucket: process.env.S3_BUCKET_NAME, // ใช้ตัวแปรจาก .env
-    Key: `images/${filename}`, // ตั้งชื่อไฟล์ที่ต้องการอัปโหลด
-    Body: imageBuffer,
-    ContentEncoding: "base64", // บอก S3 ว่าไฟล์นี้ถูกเข้ารหัสด้วย base64
-    ContentType: `image/${ext}`, // ประเภทของรูปภาพ
+  // ตรวจสอบว่าไฟล์มีอยู่ใน S3 แล้วหรือไม่
+  const paramsCheck = {
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: `images/${filename}`
   };
 
   try {
-    const uploadResponse = await s3.upload(params).promise();
-    return uploadResponse.Location; // คืนค่า URL ของรูปภาพที่ถูกอัปโหลด
-  } catch (error) {
-    console.error("Error uploading image to S3:", error);
-    throw new Error("Failed to upload image to S3.");
+    await s3.headObject(paramsCheck).promise();
+    console.log('Image already exists in S3');
+    return `https://${process.env.S3_BUCKET_NAME}.s3.amazonaws.com/images/${filename}`;
+  } catch (err) {
+    if (err.code !== 'NotFound') {
+      console.error('Error checking if image exists:', err);
+      throw new Error('Failed to check if image exists in S3.');
+    }
+
+    // อัปโหลดภาพไปยัง S3
+    const paramsUpload = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: `images/${filename}`,
+      Body: imageBuffer,
+      ContentEncoding: 'base64',
+      ContentType: imageData.type,  // ใช้ประเภทไฟล์จากฟังก์ชัน decodeBase64Image
+    };
+
+    const uploadResponse = await s3.upload(paramsUpload).promise();
+    return uploadResponse.Location;  // คืนค่า URL ของรูปภาพที่ถูกอัปโหลด
   }
 }
 
